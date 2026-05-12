@@ -1,0 +1,55 @@
+version: '3.9'
+
+# Docker Compose para desenvolvimento local (apenas bancos de dados)
+# As aplicações rodam localmente via "pnpm dev"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: conecta_postgres_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: conecta
+      POSTGRES_PASSWORD: conecta123
+      POSTGRES_DB: conecta_market
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U conecta"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:7-jammy
+    container_name: conecta_mongodb_dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: conecta
+      MONGO_INITDB_ROOT_PASSWORD: conecta123
+      MONGO_INITDB_DATABASE: conecta_logs
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_dev_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    container_name: conecta_redis_dev
+    restart: unless-stopped
+    command: redis-server --requirepass conecta123
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+
+volumes:
+  postgres_dev_data:
+  mongodb_dev_data:
+  redis_dev_data:
+
+networks:
+  default:
+    name: conecta_dev_network

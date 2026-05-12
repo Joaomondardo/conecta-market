@@ -1,0 +1,12 @@
+export const APP_CONSTANTS = {
+  SECURITY: {
+    BCRYPT_SALT_ROUNDS: 12,
+  },
+  PAGINATION: {
+    DEFAULT_PAGE_SIZE: 20,
+    DEFAULT_PAGE: 1,
+  },
+  ORDER: {
+    EXPIRATION_DAYS: 3,
+  },
+};

@@ -1,0 +1,473 @@
+// Conecta Market — Prisma Schema Completo
+// PostgreSQL como banco principal
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ─────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  SUPPLIER
+  SELLER
+  CUSTOMER
+  GUEST
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum StoreStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum StoreType {
+  B2B
+  B2C
+  HYBRID
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  OUT_OF_STOCK
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  APPROVED
+  REJECTED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  PIX
+  BOLETO
+  BANK_TRANSFER
+}
+
+enum CampaignType {
+  CASHBACK
+  COUPON
+  FLASH_SALE
+  DISCOUNT
+  FREE_SHIPPING
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  FINISHED
+}
+
+enum NotificationType {
+  ORDER_UPDATE
+  PAYMENT_UPDATE
+  PROMOTION
+  SYSTEM
+  REVIEW
+  MESSAGE
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ─── User ──────────────────────────────────────────────────────────────────
+
+model User {
+  id                   String     @id @default(cuid())
+  name                 String
+  email                String     @unique
+  password             String?
+  phone                String?
+  cpf                  String?    @unique
+  cnpj                 String?    @unique
+  avatar               String?
+  role                 UserRole   @default(CUSTOMER)
+  status               UserStatus @default(PENDING_VERIFICATION)
+  emailVerified        Boolean    @default(false)
+  emailVerifiedAt      DateTime?
+  twoFactorEnabled     Boolean    @default(false)
+  twoFactorSecret      String?
+  googleId             String?    @unique
+  refreshToken         String?
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  lastLoginAt          DateTime?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+  deletedAt            DateTime?
+
+  // Relações
+  addresses        Address[]
+  store            Store?
+  orders           Order[]        @relation("CustomerOrders")
+  reviews          Review[]
+  notifications    Notification[]
+  favorites        Favorite[]
+  sentMessages     Message[]      @relation("SentMessages")
+  receivedMessages Message[]      @relation("ReceivedMessages")
+
+  @@index([email])
+  @@map("users")
+}
+
+// ─── Address ───────────────────────────────────────────────────────────────
+
+model Address {
+  id           String   @id @default(cuid())
+  userId       String
+  label        String   @default("Principal")
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+  zipCode      String
+  country      String   @default("BR")
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@map("addresses")
+}
+
+// ─── Store ─────────────────────────────────────────────────────────────────
+
+model Store {
+  id           String      @id @default(cuid())
+  ownerId      String      @unique
+  name         String
+  slug         String      @unique
+  description  String?
+  logo         String?
+  banner       String?
+  type         StoreType   @default(HYBRID)
+  status       StoreStatus @default(PENDING)
+  cnpj         String?     @unique
+  phone        String?
+  email        String?
+  website      String?
+  rating       Float       @default(0)
+  totalSales   Int         @default(0)
+  totalReviews Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
+  approvedAt   DateTime?
+  approvedById String?
+
+  owner     User       @relation(fields: [ownerId], references: [id])
+  products  Product[]
+  orders    Order[]
+  reviews   Review[]
+  campaigns Campaign[]
+
+  @@map("stores")
+}
+
+// ─── Category ──────────────────────────────────────────────────────────────
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  image       String?
+  icon        String?
+  parentId    String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parent   Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryChildren")
+  products Product[]
+
+  @@map("categories")
+}
+
+// ─── Product ───────────────────────────────────────────────────────────────
+
+model Product {
+  id               String        @id @default(cuid())
+  storeId          String
+  categoryId       String?
+  name             String
+  slug             String        @unique
+  description      String?
+  shortDescription String?
+  sku              String?       @unique
+  barcode          String?
+  price            Decimal       @db.Decimal(10, 2)
+  priceB2B         Decimal?      @db.Decimal(10, 2)
+  compareAtPrice   Decimal?      @db.Decimal(10, 2)
+  costPrice        Decimal?      @db.Decimal(10, 2)
+  stock            Int           @default(0)
+  minOrderQty      Int           @default(1)
+  maxOrderQty      Int?
+  weight           Float?
+  width            Float?
+  height           Float?
+  depth            Float?
+  images           String[]
+  tags             String[]
+  attributes       Json?
+  status           ProductStatus @default(DRAFT)
+  isFeatured       Boolean       @default(false)
+  rating           Float         @default(0)
+  totalReviews     Int           @default(0)
+  totalSales       Int           @default(0)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
+
+  store         Store          @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  category      Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  orderItems    OrderItem[]
+  reviews       Review[]
+  favorites     Favorite[]
+  campaignItems CampaignItem[]
+
+  @@index([slug])
+  @@index([storeId, categoryId, status])
+  @@map("products")
+}
+
+// ─── Order ─────────────────────────────────────────────────────────────────
+
+model Order {
+  id                String      @id @default(cuid())
+  orderNumber       String      @unique @default(cuid())
+  customerId        String
+  storeId           String
+  addressId         String?
+  status            OrderStatus @default(PENDING)
+  subtotal          Decimal     @db.Decimal(10, 2)
+  discount          Decimal     @default(0) @db.Decimal(10, 2)
+  shipping          Decimal     @default(0) @db.Decimal(10, 2)
+  tax               Decimal     @default(0) @db.Decimal(10, 2)
+  total             Decimal     @db.Decimal(10, 2)
+  couponCode        String?
+  notes             String?
+  trackingCode      String?
+  estimatedDelivery DateTime?
+  deliveredAt       DateTime?
+  cancelledAt       DateTime?
+  cancelReason      String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  customer User        @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: Restrict)
+  store    Store       @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  address  Address?    @relation(fields: [addressId], references: [id], onDelete: SetNull)
+  items    OrderItem[]
+  payment  Payment?
+  messages Message[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  name      String
+  sku       String?
+  image     String?
+  price     Decimal @db.Decimal(10, 2)
+  quantity  Int
+  total     Decimal @db.Decimal(10, 2)
+  isB2B     Boolean @default(false)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+// ─── Payment ───────────────────────────────────────────────────────────────
+
+model Payment {
+  id              String        @id @default(cuid())
+  orderId         String        @unique
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  amount          Decimal       @db.Decimal(10, 2)
+  installments    Int           @default(1)
+  gatewayId       String?
+  gatewayResponse Json?
+  pixCode         String?
+  boletoUrl       String?
+  paidAt          DateTime?
+  refundedAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@map("payments")
+}
+
+// ─── Campaign ──────────────────────────────────────────────────────────────
+
+model Campaign {
+  id            String         @id @default(cuid())
+  storeId       String
+  name          String
+  description   String?
+  type          CampaignType
+  status        CampaignStatus @default(DRAFT)
+  discountType  String         @default("PERCENTAGE") // PERCENTAGE | FIXED
+  discountValue Decimal        @db.Decimal(10, 2)
+  minOrderValue Decimal?       @db.Decimal(10, 2)
+  maxDiscount   Decimal?       @db.Decimal(10, 2)
+  usageLimit    Int?
+  usageCount    Int            @default(0)
+  startsAt      DateTime
+  endsAt        DateTime
+  isPublic      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  store  Store          @relation(fields: [storeId], references: [id])
+  coupon Coupon?
+  items  CampaignItem[]
+
+  @@map("campaigns")
+}
+
+model Coupon {
+  id         String   @id @default(cuid())
+  campaignId String   @unique
+  code       String   @unique
+  createdAt  DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+
+  @@map("coupons")
+}
+
+model CampaignItem {
+  id         String @id @default(cuid())
+  campaignId String
+  productId  String
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+  product  Product  @relation(fields: [productId], references: [id])
+
+  @@unique([campaignId, productId])
+  @@map("campaign_items")
+}
+
+// ─── Review ────────────────────────────────────────────────────────────────
+
+model Review {
+  id         String       @id @default(cuid())
+  userId     String
+  productId  String?
+  storeId    String?
+  rating     Int
+  title      String?
+  comment    String?
+  images     String[]
+  status     ReviewStatus @default(PENDING)
+  isVerified Boolean      @default(false)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  product Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  store   Store?   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+// ─── Notification ──────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// ─── Favorite ──────────────────────────────────────────────────────────────
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("favorites")
+}
+
+// ─── Message ───────────────────────────────────────────────────────────────
+
+model Message {
+  id         String    @id @default(cuid())
+  orderId    String?
+  senderId   String
+  receiverId String
+  content    String
+  isRead     Boolean   @default(false)
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  order    Order? @relation(fields: [orderId], references: [id])
+  sender   User   @relation("SentMessages", fields: [senderId], references: [id])
+  receiver User   @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  @@map("messages")
+}
