@@ -33,7 +33,7 @@ async function bootstrap() {
       name: 'Vendedor Exemplo',
       email: 'vendedor@conecta.com',
       password: sellerPassword,
-      role: UserRole.SELLER,
+      role: UserRole.LOJISTA,
       status: 'ACTIVE',
       emailVerified: true,
       store: {
@@ -58,7 +58,7 @@ async function bootstrap() {
       name: 'Cliente Exemplo',
       email: 'cliente@conecta.com',
       password: customerPassword,
-      role: UserRole.CUSTOMER,
+      role: UserRole.CLIENTE,
       status: 'ACTIVE',
       emailVerified: true,
     },

@@ -23,7 +23,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
     private readonly usersService: UsersService,
-  ) {}
+  ) { }
 
   // ── Register ───────────────────────────────────────────────────────────────
   async register(dto: RegisterDto) {
@@ -39,9 +39,12 @@ export class AuthService {
         email: dto.email,
         password: hash,
         phone: dto.phone,
-        role: dto.role ?? UserRole.CUSTOMER,
+        role: dto.role ?? UserRole.CLIENTE,
+        wallet: { create: { balance: 0 } }, // Create wallet on register
       },
+      include: { wallet: true },
     });
+
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
@@ -54,7 +57,9 @@ export class AuthService {
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
+      include: { wallet: true },
     });
+
     if (!user || !user.password) throw new UnauthorizedException('Credenciais inválidas');
 
     const passwordValid = await bcrypt.compare(dto.password, user.password);
@@ -153,13 +158,26 @@ export class AuthService {
           emailVerified: true,
           emailVerifiedAt: new Date(),
           status: 'ACTIVE',
+          wallet: { create: { balance: 0 } },
         },
+        include: { wallet: true },
       });
     } else if (!user.googleId) {
       user = await this.prisma.user.update({
         where: { id: user.id },
         data: { googleId: googleUser.googleId },
+        include: { wallet: true },
       });
+    } else {
+      user = await this.prisma.user.findUnique({
+        where: { id: user.id },
+        include: { wallet: true },
+      }) as any;
+    }
+    if (!user) {
+      throw new Error('Usuário não encontrado');
+      // Nota: Se o seu projeto tiver um erro personalizado do NestJS, 
+      // pode usar: throw new UnauthorizedException('Credenciais inválidas');
     }
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
@@ -169,7 +187,8 @@ export class AuthService {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  private async generateTokens(userId: string, email: string, role: UserRole) {
+  async generateTokens(userId: string, email: string, role: UserRole) {
+
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
         { sub: userId, email, role },
@@ -189,7 +208,8 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private async updateRefreshToken(userId: string, rt: string) {
+  async updateRefreshToken(userId: string, rt: string) {
+
     const hash = await bcrypt.hash(rt, 10);
     await this.prisma.user.update({
       where: { id: userId },

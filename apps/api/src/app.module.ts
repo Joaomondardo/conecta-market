@@ -14,6 +14,8 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
+import { EntrepreneursModule } from './modules/entrepreneurs/entrepreneurs.module';
+
 import { validate } from './common/config/env.validation';
 
 @Module({
@@ -52,6 +54,8 @@ import { validate } from './common/config/env.validation';
     NotificationsModule,
     AnalyticsModule,
     FavoritesModule,
+    EntrepreneursModule,
   ],
+
 })
 export class AppModule {}

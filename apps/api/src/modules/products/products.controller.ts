@@ -50,7 +50,7 @@ export class ProductsController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
-  @Roles(UserRole.SELLER, UserRole.SUPPLIER, UserRole.ADMIN)
+  @Roles(UserRole.LOJISTA, UserRole.FORNECEDOR, UserRole.ADMIN)
   @ApiOperation({ summary: 'Criar produto (Vendedor/Admin)' })
   create(
     @GetCurrentUser() user: ActiveUser,
@@ -64,7 +64,7 @@ export class ProductsController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
-  @Roles(UserRole.SELLER, UserRole.SUPPLIER, UserRole.ADMIN)
+  @Roles(UserRole.LOJISTA, UserRole.FORNECEDOR, UserRole.ADMIN)
   @ApiOperation({ summary: 'Atualizar produto (Vendedor/Admin)' })
   update(
     @Param('id') id: string,
@@ -77,7 +77,7 @@ export class ProductsController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
-  @Roles(UserRole.SELLER, UserRole.SUPPLIER, UserRole.ADMIN)
+  @Roles(UserRole.LOJISTA, UserRole.FORNECEDOR, UserRole.ADMIN)
   @ApiOperation({ summary: 'Desativar produto (Vendedor/Admin)' })
   remove(@Param('id') id: string, @GetCurrentUser() user: ActiveUser) {
     return this.productsService.remove(id, user.storeId!);

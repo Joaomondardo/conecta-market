@@ -6,7 +6,7 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
-import { OrderStatus } from '@prisma/client';
+import { type OrderStatus } from '@prisma/client';
 import { ActiveUser } from '../../common/interfaces/active-user.interface';
 
 @ApiTags('orders')
@@ -14,7 +14,7 @@ import { ActiveUser } from '../../common/interfaces/active-user.interface';
 @UseGuards(JwtAuthGuard)
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(private readonly ordersService: OrdersService) { }
 
   @Post()
   @ApiOperation({ summary: 'Criar pedido' })

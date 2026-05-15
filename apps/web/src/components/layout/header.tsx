@@ -113,7 +113,17 @@ export function Header() {
             </div>
           )}
 
+          {isAuthenticated && user && (user as any).wallet && (
+            <div className="hidden lg:flex items-center gap-1 px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
+              <span className="text-xs font-medium text-primary">Cashback:</span>
+              <span className="text-xs font-bold text-primary">
+                R$ {Number((user as any).wallet.balance).toFixed(2)}
+              </span>
+            </div>
+          )}
+
           <Button
+
             variant="ghost"
             size="icon"
             className="md:hidden"

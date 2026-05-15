@@ -7,17 +7,47 @@ export class ReviewsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateReviewDto) {
-    const review = await this.prisma.review.create({
-      data: { userId, ...dto },
-      include: { user: { select: { id: true, name: true, avatar: true } } },
+    return this.prisma.$transaction(async (tx) => {
+      const review = await tx.review.create({
+        data: { userId, ...dto, status: 'APPROVED' },
+        include: { user: { select: { id: true, name: true, avatar: true } } },
+      });
+
+      // Atualizar rating médio do produto/loja imediatamente
+      if (dto.productId) {
+        const result = await tx.review.aggregate({
+          where: { productId: dto.productId, status: 'APPROVED' },
+          _avg: { rating: true },
+          _count: { id: true },
+        });
+        await tx.product.update({
+          where: { id: dto.productId },
+          data: {
+            rating: result._avg.rating ?? 0,
+            totalReviews: result._count.id,
+          },
+        });
+      }
+
+      if (dto.storeId) {
+        const result = await tx.review.aggregate({
+          where: { storeId: dto.storeId, status: 'APPROVED' },
+          _avg: { rating: true },
+          _count: { id: true },
+        });
+        await tx.store.update({
+          where: { id: dto.storeId },
+          data: {
+            rating: result._avg.rating ?? 0,
+            totalReviews: result._count.id,
+          },
+        });
+      }
+
+      return review;
     });
-
-    // Atualizar rating médio do produto/loja
-    if (dto.productId) await this.updateProductRating(dto.productId);
-    if (dto.storeId) await this.updateStoreRating(dto.storeId);
-
-    return review;
   }
+
 
   async findByProduct(productId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;

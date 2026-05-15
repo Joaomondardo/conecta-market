@@ -107,7 +107,14 @@ export interface User extends BaseEntity {
   status: UserStatus;
   emailVerified: boolean;
   profile?: UserProfile;
+  wallet?: Wallet;
 }
+
+export interface Wallet extends BaseEntity {
+  userId: string;
+  balance: number;
+}
+
 
 export interface UserProfile {
   id: string;
@@ -231,13 +238,14 @@ export interface Coupon extends BaseEntity {
   expiresAt: string;
 }
 
-export interface Cashback extends BaseEntity {
-  userId: string;
-  orderId: string;
+export interface Transaction extends BaseEntity {
+  walletId: string;
+  orderId?: string;
   amount: number;
-  status: CashbackStatus;
-  expiresAt: string;
+  type: 'CREDIT' | 'DEBIT';
+  description?: string;
 }
+
 
 // ─── Avaliação ────────────────────────────────────────────────────
 

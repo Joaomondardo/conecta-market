@@ -2,12 +2,12 @@ import { IsEmail, IsString, MinLength, IsOptional, IsEnum } from 'class-validato
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 
-export class RegisterDto {
-  @ApiProperty({ example: 'João Silva' })
+export class CreateEntrepreneurDto {
+  @ApiProperty({ example: 'Mercadinho da Vila' })
   @IsString()
   name: string;
 
-  @ApiProperty({ example: 'joao@email.com' })
+  @ApiProperty({ example: 'contato@mercadinho.com' })
   @IsEmail()
   email: string;
 
@@ -21,8 +21,12 @@ export class RegisterDto {
   @IsString()
   phone?: string;
 
-  @ApiPropertyOptional({ enum: UserRole, default: UserRole.CLIENTE })
+  @ApiPropertyOptional({ example: '12.345.678/0001-00' })
   @IsOptional()
+  @IsString()
+  cnpj?: string;
+
+  @ApiProperty({ enum: UserRole, default: UserRole.EMPREENDEDOR })
   @IsEnum(UserRole)
-  role?: UserRole;
+  role: UserRole = UserRole.EMPREENDEDOR;
 }

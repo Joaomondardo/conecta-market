@@ -17,7 +17,7 @@ export class CampaignsController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
-  @Roles(UserRole.SELLER, UserRole.SUPPLIER, UserRole.ADMIN)
+  @Roles(UserRole.LOJISTA, UserRole.FORNECEDOR, UserRole.ADMIN)
   @ApiOperation({ summary: 'Criar campanha' })
   create(@GetCurrentUser() user: any, @Body() dto: CreateCampaignDto) {
     return this.campaignsService.create(user.store?.id ?? dto.storeId, dto);
@@ -26,7 +26,7 @@ export class CampaignsController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('store')
-  @Roles(UserRole.SELLER, UserRole.SUPPLIER, UserRole.ADMIN)
+  @Roles(UserRole.LOJISTA, UserRole.FORNECEDOR, UserRole.ADMIN)
   @ApiOperation({ summary: 'Listar campanhas da loja' })
   findAll(@GetCurrentUser() user: any) {
     return this.campaignsService.findAll(user.store?.id);
@@ -49,7 +49,7 @@ export class CampaignsController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
-  @Roles(UserRole.SELLER, UserRole.SUPPLIER, UserRole.ADMIN)
+  @Roles(UserRole.LOJISTA, UserRole.FORNECEDOR, UserRole.ADMIN)
   @ApiOperation({ summary: 'Pausar campanha' })
   remove(@Param('id') id: string, @GetCurrentUser() user: any) {
     return this.campaignsService.remove(id, user.store?.id);
