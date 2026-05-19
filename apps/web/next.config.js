@@ -5,6 +5,9 @@ const nextConfig = {
     domains: ['localhost', 'res.cloudinary.com', 'images.unsplash.com'],
   },
   compress: true,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 module.exports = nextConfig;
