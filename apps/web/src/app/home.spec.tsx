@@ -12,7 +12,8 @@ vi.mock('@/components/layout/footer', () => ({
 }));
 
 vi.mock('next/image', () => ({
-  default: (props: any) => <img {...props} />
+  // eslint-disable-next-line @next/next/no-img-element
+  default: (props: Record<string, unknown>) => <img alt="" {...props} />
 }));
 
 describe('Home Integration', () => {

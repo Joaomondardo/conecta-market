@@ -7,11 +7,11 @@ import { filter } from 'rxjs/operators';
 
 @Injectable()
 export class NotificationsService {
-  private readonly notificationSubject = new Subject<any>();
+  private readonly notificationSubject = new Subject<Record<string, any>>();
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(userId: string, type: any, title: string, message: string, data?: any) {
+  async create(userId: string, type: NotificationType, title: string, message: string, data?: Record<string, any>) {
     const notification = await this.prisma.notification.create({
       data: { userId, type, title, message, data },
     });
@@ -41,7 +41,7 @@ export class NotificationsService {
     );
   }
 
-  stream(userId: string): Observable<any> {
+  stream(userId: string): Observable<Record<string, any>> {
     return this.notificationSubject.asObservable().pipe(
       filter((n) => n.userId === userId)
     );

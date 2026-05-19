@@ -3,10 +3,10 @@ import { Footer } from "@/components/layout/footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Store, MapPin, Mail, Phone, Star, Search, Filter } from "lucide-react";
+import { Store, MapPin, Star, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-export default function StorePage({ params }: { params: { slug: string } }) {
+export default function StorePage({ params: _params }: { params: { slug: string } }) {
   // Em uma aplicação real, aqui buscaríamos os dados da loja pelo slug (params.slug) via SSR/RSC
 
   return (

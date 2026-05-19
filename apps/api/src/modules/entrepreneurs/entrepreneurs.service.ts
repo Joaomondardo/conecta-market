@@ -35,7 +35,7 @@ export class EntrepreneurService {
         },
       });
 
-      const store = await tx.store.create({
+      await tx.store.create({
         data: {
           ownerId: user.id,
           name: `Loja de ${dto.name}`,

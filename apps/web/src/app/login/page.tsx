@@ -61,8 +61,9 @@ export default function LoginPage() {
       } else {
         router.push("/");
       }
-    } catch (err: any) {
-      toast.error(err.message || "Erro de conexão com o servidor");
+    } catch (err) {
+      const error = err as Error;
+      toast.error(error.message || "Erro de conexão com o servidor");
     } finally {
       setIsLoading(false);
     }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class AnalyticsService {
@@ -81,7 +82,7 @@ export class AnalyticsService {
   }
 
   async getSummary() {
-    const roles = ['LOJISTA', 'EMPREENDEDOR'];
+    const roles: UserRole[] = [UserRole.LOJISTA, UserRole.EMPREENDEDOR];
 
     const [
       totalCashback,
@@ -100,7 +101,7 @@ export class AnalyticsService {
         this.prisma.order.aggregate({
           where: {
             status: 'DELIVERED',
-            customer: { role: role as any },
+            customer: { role },
           },
           _sum: { total: true },
         }),
@@ -108,13 +109,13 @@ export class AnalyticsService {
     ]);
 
     const volumeByRole = roles.reduce((acc: Record<string, number>, role, index) => {
-      acc[role] = Number((roleResults[index] as any)._sum.total ?? 0);
+      acc[role] = Number((roleResults[index] as Record<string, any>)._sum.total ?? 0);
       return acc;
     }, {});
 
     return {
-      totalCashback: (totalCashback as any)._sum.amount ?? 0,
-      totalGifts: (totalGifts as any)._sum.usageCount ?? 0,
+      totalCashback: (totalCashback as Record<string, any>)._sum.amount ?? 0,
+      totalGifts: (totalGifts as Record<string, any>)._sum.usageCount ?? 0,
       volumeByRole,
     };
   }

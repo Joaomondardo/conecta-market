@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards
+  Controller, Get, Post, Patch, Param, Body, Query, UseGuards
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { StoresService } from './stores.service';

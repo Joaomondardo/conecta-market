@@ -5,7 +5,7 @@ export interface Product {
   name: string;
   price: number;
   slug: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export const productService = {

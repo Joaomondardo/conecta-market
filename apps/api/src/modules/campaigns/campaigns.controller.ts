@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CampaignsService } from './campaigns.service';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
@@ -19,7 +19,7 @@ export class CampaignsController {
   @Post()
   @Roles(UserRole.LOJISTA, UserRole.FORNECEDOR, UserRole.ADMIN)
   @ApiOperation({ summary: 'Criar campanha' })
-  create(@GetCurrentUser() user: any, @Body() dto: CreateCampaignDto) {
+  create(@GetCurrentUser() user: Record<string, any>, @Body() dto: CreateCampaignDto) {
     return this.campaignsService.create(user.store?.id ?? dto.storeId, dto);
   }
 
@@ -28,7 +28,7 @@ export class CampaignsController {
   @Get('store')
   @Roles(UserRole.LOJISTA, UserRole.FORNECEDOR, UserRole.ADMIN)
   @ApiOperation({ summary: 'Listar campanhas da loja' })
-  findAll(@GetCurrentUser() user: any) {
+  findAll(@GetCurrentUser() user: Record<string, any>) {
     return this.campaignsService.findAll(user.store?.id);
   }
 
@@ -51,7 +51,7 @@ export class CampaignsController {
   @Delete(':id')
   @Roles(UserRole.LOJISTA, UserRole.FORNECEDOR, UserRole.ADMIN)
   @ApiOperation({ summary: 'Pausar campanha' })
-  remove(@Param('id') id: string, @GetCurrentUser() user: any) {
+  remove(@Param('id') id: string, @GetCurrentUser() user: Record<string, any>) {
     return this.campaignsService.remove(id, user.store?.id);
   }
 }

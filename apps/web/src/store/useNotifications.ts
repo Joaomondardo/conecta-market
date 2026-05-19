@@ -2,13 +2,20 @@ import { create } from 'zustand';
 import { useAuthStore } from './useAuthStore';
 import { useEffect } from 'react';
 
+export interface NotificationPayload {
+  id?: string;
+  message?: string;
+  type?: string;
+  [key: string]: unknown;
+}
+
 export interface Notification {
   id: string;
   userId: string;
   type: 'ORDER_UPDATE' | 'PAYMENT_UPDATE' | 'PROMOTION' | 'SYSTEM' | 'REVIEW' | 'MESSAGE';
   title: string;
   message: string;
-  data?: any;
+  data?: NotificationPayload;
   isRead: boolean;
   readAt?: string;
   createdAt: string;

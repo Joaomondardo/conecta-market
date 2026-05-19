@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, User, Search, Menu, X, PackageOpen, Store, Bell } from "lucide-react";
+import { ShoppingCart, Search, Menu, X, PackageOpen, Store, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCartStore } from "@/store/useCartStore";

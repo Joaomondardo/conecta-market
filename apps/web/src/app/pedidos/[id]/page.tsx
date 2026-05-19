@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -154,7 +155,7 @@ export default function PedidoDetalhePage() {
                     <div key={item.id} className="flex gap-4 p-6 items-center">
                       <div className="h-16 w-16 bg-muted rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden border">
                         {item.image ? (
-                          <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                          <Image src={item.image} alt={item.name} width={64} height={64} className="h-full w-full object-cover" />
                         ) : (
                           <Package className="h-8 w-8 text-muted-foreground/40" />
                         )}

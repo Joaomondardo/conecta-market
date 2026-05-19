@@ -33,7 +33,7 @@ function StatusBadge({ status }: { status: Order['status'] }) {
 }
 
 export default function PedidosPage() {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {

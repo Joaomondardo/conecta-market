@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Heart, Store, Truck, ShieldCheck, Star } from "lucide-react";
 
-export default function ProductPage({ params }: { params: { slug: string } }) {
+export default function ProductPage({ params: _params }: { params: { slug: string } }) {
   // Em uma aplicação real, aqui buscaríamos os dados do produto pelo slug (params.slug) via SSR/RSC
   
   return (

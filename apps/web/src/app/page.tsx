@@ -1,10 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ShoppingBag, Store, Users, TrendingUp, ShieldCheck, HeartHandshake } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, Users, TrendingUp, HeartHandshake } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { productService } from "@/services/api/products.service";
+import { productService, Product } from "@/services/api/products.service";
 
 export default async function Home() {
   const products = await productService.findAll();
@@ -37,7 +35,7 @@ export default async function Home() {
               </h3>
               <div className="space-y-4">
                 {products.length > 0 ? (
-                  products.slice(0, 2).map((product: any) => (
+                  products.slice(0, 2).map((product: Product) => (
                     <div key={product.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-transparent hover:border-primary/20 transition-all cursor-pointer">
                       <div>
                         <p className="font-bold">{product.name}</p>

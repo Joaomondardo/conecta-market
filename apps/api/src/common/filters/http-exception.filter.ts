@@ -29,7 +29,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const message =
       typeof exceptionResponse === 'object' && exceptionResponse !== null
-        ? (exceptionResponse as any).message || JSON.stringify(exceptionResponse)
+        ? (exceptionResponse as Record<string, any>).message || JSON.stringify(exceptionResponse)
         : exceptionResponse;
 
     const errorResponse = {

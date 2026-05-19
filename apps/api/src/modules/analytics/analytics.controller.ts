@@ -24,7 +24,7 @@ export class AnalyticsController {
   @Get('seller')
   @Roles(UserRole.LOJISTA, UserRole.FORNECEDOR, UserRole.ADMIN)
   @ApiOperation({ summary: 'Dashboard do Vendedor' })
-  getSellerDashboard(@GetCurrentUser() user: any) {
+  getSellerDashboard(@GetCurrentUser() user: Record<string, any>) {
     if (!user.store?.id) return { message: 'Usuário não possui loja associada' };
     return this.analyticsService.getSellerDashboard(user.store.id);
   }

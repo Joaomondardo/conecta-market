@@ -49,7 +49,7 @@ export class AuthService {
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
 
-    const { password, refreshToken, ...result } = user;
+    const { password: _password, refreshToken: _refreshToken, ...result } = user;
     return { user: result, ...tokens };
   }
 
@@ -74,7 +74,7 @@ export class AuthService {
       data: { lastLoginAt: new Date() },
     });
 
-    const { password, refreshToken, ...result } = user;
+    const { password: _password, refreshToken: _refreshToken, ...result } = user;
     return { user: result, ...tokens };
   }
 
@@ -169,10 +169,13 @@ export class AuthService {
         include: { wallet: true },
       });
     } else {
-      user = await this.prisma.user.findUnique({
+      const dbUser = await this.prisma.user.findUnique({
         where: { id: user.id },
         include: { wallet: true },
-      }) as any;
+      });
+      if (dbUser) {
+        user = dbUser;
+      }
     }
     if (!user) {
       throw new Error('Usuário não encontrado');
@@ -182,7 +185,7 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
-    const { password, refreshToken, ...result } = user;
+    const { password: _password, refreshToken: _refreshToken, ...result } = user as Record<string, any>;
     return { user: result, ...tokens };
   }
 
