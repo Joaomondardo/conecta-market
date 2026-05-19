@@ -8,7 +8,7 @@ import { useCartStore } from "@/store/useCartStore";
 import { useNotifications } from "@/store/useNotifications";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -131,45 +131,47 @@ export function Header() {
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <Link href="/conta/perfil">
-                  <DropdownMenuItem>Minha Conta</DropdownMenuItem>
-                </Link>
-                <Link href="/pedidos">
-                  <DropdownMenuItem>Meus Pedidos</DropdownMenuItem>
-                </Link>
-                {user.role === 'SELLER' || user.role === 'LOJISTA' || user.role === 'EMPREENDEDOR' || user.role === 'ADMIN' ? (
-                  <>
-                    <DropdownMenuSeparator />
-                    <Link href="/painel/dashboard">
-                      <DropdownMenuItem className="flex items-center text-primary font-semibold">
-                        <Store className="mr-2 h-4 w-4" />
-                        Painel do Vendedor
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href="/painel/vendas">
-                      <DropdownMenuItem className="flex items-center text-primary font-semibold">
-                        <Store className="mr-2 h-4 w-4" />
-                        Gerenciar Vendas
-                      </DropdownMenuItem>
-                    </Link>
-                  </>
-                ) : null}
-                {user.role === 'ADMIN' && (
-                  <Link href="/admin/painel">
-                    <DropdownMenuItem>Painel Admin</DropdownMenuItem>
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <Link href="/conta/perfil">
+                    <DropdownMenuItem>Minha Conta</DropdownMenuItem>
                   </Link>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="text-destructive">
-                  Sair
-                </DropdownMenuItem>
+                  <Link href="/pedidos">
+                    <DropdownMenuItem>Meus Pedidos</DropdownMenuItem>
+                  </Link>
+                  {user.role === 'SELLER' || user.role === 'LOJISTA' || user.role === 'EMPREENDEDOR' || user.role === 'ADMIN' ? (
+                    <>
+                      <DropdownMenuSeparator />
+                      <Link href="/painel/dashboard">
+                        <DropdownMenuItem className="flex items-center text-primary font-semibold">
+                          <Store className="mr-2 h-4 w-4" />
+                          Painel do Vendedor
+                        </DropdownMenuItem>
+                      </Link>
+                      <Link href="/painel/vendas">
+                        <DropdownMenuItem className="flex items-center text-primary font-semibold">
+                          <Store className="mr-2 h-4 w-4" />
+                          Gerenciar Vendas
+                        </DropdownMenuItem>
+                      </Link>
+                    </>
+                  ) : null}
+                  {user.role === 'ADMIN' && (
+                    <Link href="/admin/painel">
+                      <DropdownMenuItem>Painel Admin</DropdownMenuItem>
+                    </Link>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="text-destructive">
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
