@@ -64,7 +64,7 @@ export function Header() {
                   <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{user.name}</p>
@@ -72,27 +72,33 @@ export function Header() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/conta/perfil">Minha Conta</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/conta/pedidos">Meus Pedidos</Link>
-                </DropdownMenuItem>
-                {user.role === 'SELLER' || user.role === 'ADMIN' ? (
+                <Link href="/conta/perfil">
+                  <DropdownMenuItem>Minha Conta</DropdownMenuItem>
+                </Link>
+                <Link href="/pedidos">
+                  <DropdownMenuItem>Meus Pedidos</DropdownMenuItem>
+                </Link>
+                {user.role === 'SELLER' || user.role === 'LOJISTA' || user.role === 'EMPREENDEDOR' || user.role === 'ADMIN' ? (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/painel/dashboard" className="flex items-center text-primary">
+                    <Link href="/painel/dashboard">
+                      <DropdownMenuItem className="flex items-center text-primary font-semibold">
                         <Store className="mr-2 h-4 w-4" />
                         Painel do Vendedor
-                      </Link>
-                    </DropdownMenuItem>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href="/painel/vendas">
+                      <DropdownMenuItem className="flex items-center text-primary font-semibold">
+                        <Store className="mr-2 h-4 w-4" />
+                        Gerenciar Vendas
+                      </DropdownMenuItem>
+                    </Link>
                   </>
                 ) : null}
                 {user.role === 'ADMIN' && (
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin/painel">Painel Admin</Link>
-                  </DropdownMenuItem>
+                  <Link href="/admin/painel">
+                    <DropdownMenuItem>Painel Admin</DropdownMenuItem>
+                  </Link>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="text-destructive">

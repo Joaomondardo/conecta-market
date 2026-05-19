@@ -1,7 +1,7 @@
 import { IsOptional, IsString, IsNumber, IsBoolean, IsEnum, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { ProductStatus } from '@prisma/client';
+import { ProductStatus, ProductType } from '@prisma/client';
 
 export class FilterProductsDto {
   @ApiPropertyOptional({ default: 1 })
@@ -57,4 +57,9 @@ export class FilterProductsDto {
   @IsOptional()
   @IsEnum(ProductStatus)
   status?: ProductStatus;
+
+  @ApiPropertyOptional({ enum: ProductType })
+  @IsOptional()
+  @IsEnum(ProductType)
+  type?: ProductType;
 }

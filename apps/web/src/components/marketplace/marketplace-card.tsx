@@ -169,17 +169,16 @@ export function MarketplaceCard({
             )}
           </div>
 
-          <Button
-            className="w-full group/btn relative overflow-hidden font-semibold"
-            size="sm"
-            variant={cfg.ctaVariant}
-            asChild
-          >
-            <Link href={`/produto/${id}`}>
+          <Link href={`/produto/${id}`} className="w-full">
+            <Button
+              className="w-full group/btn relative overflow-hidden font-semibold"
+              size="sm"
+              variant={cfg.ctaVariant}
+            >
               <CtaIcon className="h-4 w-4 mr-2 transition-transform group-hover/btn:scale-110" />
               {cfg.ctaLabel}
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>

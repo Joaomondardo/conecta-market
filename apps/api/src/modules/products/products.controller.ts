@@ -11,7 +11,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
-import { UserRole } from '@prisma/client';
+import { UserRole, ProductType } from '@prisma/client';
 import { ActiveUser } from '../../common/interfaces/active-user.interface';
 
 @ApiTags('products')
@@ -29,6 +29,7 @@ export class ProductsController {
   @ApiQuery({ name: 'storeId', required: false })
   @ApiQuery({ name: 'minPrice', required: false })
   @ApiQuery({ name: 'maxPrice', required: false })
+  @ApiQuery({ name: 'type', required: false, enum: ProductType })
   findAll(@Query() query: FilterProductsDto) {
     return this.productsService.findAll(query);
   }

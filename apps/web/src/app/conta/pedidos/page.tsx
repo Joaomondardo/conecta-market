@@ -86,11 +86,11 @@ export default function PedidosPage() {
                       <Badge className={`${statusInfo.className} border-0 shadow-none px-3 py-1 text-xs`} variant="outline">
                         {statusInfo.label}
                       </Badge>
-                      <Button variant="outline" asChild>
-                        <Link href={`/conta/pedidos/${order.id}`}>
+                      <Link href={`/conta/pedidos/${order.id}`}>
+                        <Button variant="outline">
                           <Eye className="h-4 w-4 mr-2" /> Detalhes
-                        </Link>
-                      </Button>
+                        </Button>
+                      </Link>
                     </div>
                   </CardContent>
                 </Card>

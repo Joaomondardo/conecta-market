@@ -15,6 +15,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { EntrepreneursModule } from './modules/entrepreneurs/entrepreneurs.module';
+import { WalletModule } from './modules/wallet/wallet.module';
 
 import { validate } from './common/config/env.validation';
 
@@ -55,6 +56,7 @@ import { validate } from './common/config/env.validation';
     AnalyticsModule,
     FavoritesModule,
     EntrepreneursModule,
+    WalletModule,
   ],
 
 })

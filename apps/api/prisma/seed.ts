@@ -171,6 +171,36 @@ async function bootstrap() {
         images: ['https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?q=80&w=500'],
       },
     });
+
+    await prisma.product.create({
+      data: {
+        storeId: seller2.store!.id,
+        categoryId: catServicos.id,
+        name: 'Sessão de Massoterapia Relaxante',
+        slug: 'sessao-massoterapia',
+        description: 'Sessão de 60 minutos de massagem corporal focada no relaxamento e alívio de tensões.',
+        price: 120.00,
+        stock: 999,
+        type: ProductType.SERVICE,
+        status: ProductStatus.ACTIVE,
+        images: ['https://images.unsplash.com/photo-1519823551278-64ac92734fb1?q=80&w=500'],
+      },
+    });
+
+    await prisma.product.create({
+      data: {
+        storeId: seller2.store!.id,
+        categoryId: catServicos.id,
+        name: 'Corte de Cabelo e Barba (Barbearia)',
+        slug: 'corte-cabelo-barba',
+        description: 'Serviço completo de barbearia com toalha quente e finalização.',
+        price: 65.00,
+        stock: 999,
+        type: ProductType.SERVICE,
+        status: ProductStatus.ACTIVE,
+        images: ['https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=500'],
+      },
+    });
     console.log('✅ [3/4] Lojas, Produtos físicos e Serviços cadastrados com sucesso.');
 
     // ─── 4. AVALIAÇÕES E SOCIAL PROOF (Fase 3) ────────────────────────────────

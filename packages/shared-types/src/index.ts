@@ -338,3 +338,22 @@ export interface RegisterDto {
   password: string;
   role: UserRole;
 }
+
+export interface TransactionRecord {
+  id: string;
+  walletId: string;
+  orderId?: string;
+  amount: number;
+  type: 'CREDIT' | 'DEBIT';
+  description?: string;
+  createdAt: string;
+}
+
+export interface WalletSummary {
+  id: string;
+  userId: string;
+  balance: number;
+  createdAt: string;
+  updatedAt: string;
+  recentTransactions: TransactionRecord[];
+}

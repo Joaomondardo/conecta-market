@@ -184,7 +184,7 @@ export default function OnboardingPage() {
                     </Label>
                     <Select
                       value={categoryId}
-                      onValueChange={setCategoryId}
+                      onValueChange={(val) => setCategoryId(val || "")}
                       disabled={loading}
                     >
                       <SelectTrigger
