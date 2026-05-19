@@ -3,7 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class AnalyticsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getAdminDashboard() {
     const [
@@ -82,7 +82,7 @@ export class AnalyticsService {
 
   async getSummary() {
     const roles = ['LOJISTA', 'EMPREENDEDOR'];
-    
+
     const [
       totalCashback,
       totalGifts,

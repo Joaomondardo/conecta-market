@@ -1,7 +1,7 @@
 import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateEntrepreneurDto } from './dto/create-entrepreneur.dto';
-import { UserRole, StoreStatus } from '@prisma/client';
+import { UserRole, UserStatus, StoreStatus } from '@prisma/client';
 import { AuthService } from '../auth/auth.service';
 import * as bcrypt from 'bcrypt';
 
@@ -30,7 +30,7 @@ export class EntrepreneurService {
           phone: dto.whatsapp,
           password: defaultPassword,
           role: UserRole.EMPREENDEDOR,
-          status: 'ACTIVE',
+          status: UserStatus.ACTIVE,
           wallet: { create: { balance: 0 } },
         },
       });

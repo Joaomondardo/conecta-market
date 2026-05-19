@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-conecta}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-conecta123}
-      POSTGRES_DB: ${POSTGRES_DB:-conecta_market}
+      POSTGRES_DB: ${POSTGRES_DB:-conecta}
     ports:
       - "5432:5432"
     volumes:
@@ -64,7 +64,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3001
-      DATABASE_URL: postgresql://${POSTGRES_USER:-conecta}:${POSTGRES_PASSWORD:-conecta123}@postgres:5432/${POSTGRES_DB:-conecta_market}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-conecta}:${POSTGRES_PASSWORD:-conecta123}@postgres:5432/${POSTGRES_DB:-conecta}
       MONGODB_URI: mongodb://${MONGO_USER:-conecta}:${MONGO_PASSWORD:-conecta123}@mongodb:27017/${MONGO_DB:-conecta_logs}?authSource=admin
       REDIS_URL: redis://:${REDIS_PASSWORD:-conecta123}@redis:6379
       JWT_SECRET: ${JWT_SECRET:-super-secret-jwt-key-change-in-production}

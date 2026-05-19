@@ -106,9 +106,9 @@ export default async function Home() {
               Junte-se a milhares de usuários que já estão comprando com impacto e vendendo com propósito.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button size="lg" variant="secondary" className="h-14 px-8 text-lg font-bold rounded-full text-primary" asChild>
-                <Link href="/cadastro">Criar minha conta grátis</Link>
-              </Button>
+              <Link href="/cadastro" className="inline-flex h-14 px-8 text-lg font-bold rounded-full text-primary bg-secondary hover:bg-secondary/80 items-center justify-center">
+                Criar minha conta grátis
+              </Link>
             </div>
           </div>
         </section>

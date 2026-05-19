@@ -1,4 +1,4 @@
-# Base image
+#image Base 
 FROM node:20-alpine AS base
 RUN npm install -g pnpm
 

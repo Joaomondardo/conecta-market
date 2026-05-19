@@ -58,13 +58,11 @@ export function Header() {
 
           {isAuthenticated && user ? (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                </Button>
+              <DropdownMenuTrigger className="relative h-8 w-8 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
@@ -113,11 +111,11 @@ export function Header() {
             </div>
           )}
 
-          {isAuthenticated && user && (user as any).wallet && (
+          {isAuthenticated && user && user.wallet && (
             <div className="hidden lg:flex items-center gap-1 px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
               <span className="text-xs font-medium text-primary">Cashback:</span>
               <span className="text-xs font-bold text-primary">
-                R$ {Number((user as any).wallet.balance).toFixed(2)}
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(user.wallet.balance))}
               </span>
             </div>
           )}

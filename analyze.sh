@@ -1,21 +1,11 @@
-#!/usr/bin/env bash
-# ============================================================
-#  CONECTA MARKET — Analista Automático de Projeto v2.0
-#  Uso: ./analyze.sh [caminho-do-projeto]
-#  Exemplo: ./analyze.sh ./conecta-market
-# ============================================================
-set -u
-# set -e removed to prevent crashes on non-critical check failures
 
-# ── Cores e formatação ────────────────────────────────────────
+set -u
 RED='\033[0;31m'; YELLOW='\033[1;33m'; GREEN='\033[0;32m'
 BLUE='\033[0;34m'; CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
 
-# ── Contadores globais ────────────────────────────────────────
 ERRORS=0; WARNINGS=0; FIXES=0; PASS=0
 REPORT_FILE="./conecta-market-analysis-report.md"
 
-# ── Helpers de log ───────────────────────────────────────────
 log_header()  { echo -e "\n${BOLD}${BLUE}══════════════════════════════════════════${NC}"; echo -e "${BOLD}${BLUE}  $1${NC}"; echo -e "${BOLD}${BLUE}══════════════════════════════════════════${NC}"; }
 log_pass()    { echo -e "  ${GREEN}✔${NC}  $1"; PASS=$((PASS + 1)); }
 log_warn()    { echo -e "  ${YELLOW}⚠${NC}  $1"; WARNINGS=$((WARNINGS + 1)); }
@@ -25,7 +15,6 @@ log_info()    { echo -e "  ${BOLD}→${NC}  $1"; }
 
 report() { echo "$1" >> "$REPORT_FILE"; }
 
-# ── Inicialização ─────────────────────────────────────────────
 PROJECT_ROOT="${1:-$(pwd)}"
 if [[ ! -d "$PROJECT_ROOT" ]]; then
   echo -e "${RED}Erro: Diretório '$PROJECT_ROOT' não encontrado.${NC}"
@@ -34,7 +23,6 @@ if [[ ! -d "$PROJECT_ROOT" ]]; then
 fi
 cd "$PROJECT_ROOT"
 
-# Limpa relatório anterior
 echo "# Conecta Market — Relatório de Análise Automática" > "$REPORT_FILE"
 echo "**Data:** $(date '+%d/%m/%Y %H:%M:%S')" >> "$REPORT_FILE"
 echo "**Diretório:** $PROJECT_ROOT" >> "$REPORT_FILE"
@@ -48,9 +36,6 @@ echo -e "${NC}"
 echo -e "  Projeto: ${BOLD}$PROJECT_ROOT${NC}"
 echo -e "  Relatório: ${BOLD}$REPORT_FILE${NC}\n"
 
-# ══════════════════════════════════════════════════════════════
-# 1. ESTRUTURA DO MONOREPO
-# ══════════════════════════════════════════════════════════════
 log_header "1. ESTRUTURA DO MONOREPO"
 report "## 1. Estrutura do Monorepo"
 
@@ -74,7 +59,6 @@ check_path "docs/relatorio-tecnico.md"  "docs/relatorio-tecnico.md"
 check_path "docs/diagrama-er"           "docs/diagrama-er/"
 check_path "docs/conecta-market-postman.json" "docs/postman.json"
 
-# Verifica arquivos .env no git (CRÍTICO)
 if [[ -f ".gitignore" ]]; then
   if grep -q "\.env" .gitignore 2>/dev/null; then
     log_pass ".env ignorado no .gitignore"
@@ -89,7 +73,6 @@ if [[ -f ".gitignore" ]]; then
   fi
 fi
 
-# Verifica node_modules no git
 if [[ -f ".gitignore" ]] && grep -q "node_modules" .gitignore 2>/dev/null; then
   log_pass "node_modules ignorado no .gitignore"
 else
@@ -98,7 +81,6 @@ else
   echo "node_modules" >> .gitignore
 fi
 
-# Verifica turbo.json
 if [[ -f "turbo.json" ]]; then
   if ! node -e "JSON.parse(require('fs').readFileSync('turbo.json'))" 2>/dev/null; then
     log_error "turbo.json — JSON inválido (sintaxe quebrada)"
@@ -108,14 +90,10 @@ if [[ -f "turbo.json" ]]; then
   fi
 fi
 
-# ══════════════════════════════════════════════════════════════
-# 2. PACKAGE.JSON (raiz)
-# ══════════════════════════════════════════════════════════════
 log_header "2. PACKAGE.JSON RAIZ"
 report "## 2. Package.json Raiz"
 
 if [[ -f "package.json" ]]; then
-  # Verifica workspaces
   if grep -q '"workspaces"' package.json 2>/dev/null; then
     log_pass "workspaces configurado"
   else
@@ -123,7 +101,6 @@ if [[ -f "package.json" ]]; then
     report "- ⚠️ workspaces ausente no package.json raiz"
   fi
 
-  # Verifica scripts essenciais
   for script in "dev" "build" "lint" "test"; do
     if grep -q "\"$script\"" package.json 2>/dev/null; then
       log_pass "Script '$script' presente"
@@ -134,27 +111,21 @@ if [[ -f "package.json" ]]; then
   done
 fi
 
-# ══════════════════════════════════════════════════════════════
-# 3. BACKEND NESTJS (apps/api)
-# ══════════════════════════════════════════════════════════════
 log_header "3. BACKEND NESTJS (apps/api)"
 report "## 3. Backend NestJS"
 
 API_DIR="apps/api"
 
 if [[ -d "$API_DIR" ]]; then
-  # Estrutura de módulos obrigatórios
   MODULES=("auth" "users" "stores" "products" "orders" "categories" "campaigns" "reviews" "analytics")
   for mod in "${MODULES[@]}"; do
     mod_path="$API_DIR/src/$mod"
-    # Fallback para src/modules/$mod
     if [[ ! -d "$mod_path" ]] && [[ -d "$API_DIR/src/modules/$mod" ]]; then
       mod_path="$API_DIR/src/modules/$mod"
     fi
     
     if [[ -d "$mod_path" ]]; then
       log_pass "Módulo '$mod' presente"
-      # Verifica arquivos dentro do módulo
       for f in "controller" "service" "module"; do
         if ls "$mod_path"/*."$f".ts 2>/dev/null | head -1 > /dev/null; then
           :
@@ -173,12 +144,10 @@ if [[ -d "$API_DIR" ]]; then
     fi
   done
 
-  # Prisma
   PRISMA_SCHEMA="$API_DIR/prisma/schema.prisma"
   check_path "$PRISMA_SCHEMA" "prisma/schema.prisma"
 
   if [[ -f "$PRISMA_SCHEMA" ]]; then
-    # Entidades obrigatórias
     ENTITIES=("User" "Store" "Product" "Category" "Order" "Review" "Campaign")
     for entity in "${ENTITIES[@]}"; do
       if grep -q "model $entity" "$PRISMA_SCHEMA" 2>/dev/null; then
@@ -189,7 +158,6 @@ if [[ -d "$API_DIR" ]]; then
       fi
     done
 
-    # Verifica campos críticos de segurança no User
     if grep -A 20 "model User" "$PRISMA_SCHEMA" 2>/dev/null | grep -q "password"; then
       log_pass "Campo 'password' presente no model User"
     else
@@ -197,7 +165,6 @@ if [[ -d "$API_DIR" ]]; then
       report "- ❌ CRÍTICO: 'password' ausente no model User"
     fi
 
-    # Verifica soft delete
     for entity in "User" "Product" "Store"; do
       if grep -A 50 "model $entity" "$PRISMA_SCHEMA" 2>/dev/null | grep -qiE "deletedAt|isDeleted"; then
         log_pass "Soft delete no model '$entity'"
@@ -207,7 +174,6 @@ if [[ -d "$API_DIR" ]]; then
       fi
     done
 
-    # Verifica índices
     if grep -q "@@index" "$PRISMA_SCHEMA" 2>/dev/null; then
       log_pass "Índices de banco configurados no schema"
     else
@@ -215,7 +181,6 @@ if [[ -d "$API_DIR" ]]; then
       report "- ⚠️ Sem @@index no schema — adicione índices para campos de busca frequente"
     fi
 
-    # Verifica @unique no email
     if grep -B5 -A10 "email" "$PRISMA_SCHEMA" 2>/dev/null | grep -q "@unique"; then
       log_pass "Email com @unique no schema"
     else
@@ -224,7 +189,6 @@ if [[ -d "$API_DIR" ]]; then
     fi
   fi
 
-  # Guards de segurança
   SRC_DIR="$API_DIR/src"
   for guard in "JwtAuthGuard" "RolesGuard"; do
     if grep -r "$guard" "$SRC_DIR" 2>/dev/null | grep -q "export class"; then
@@ -235,7 +199,6 @@ if [[ -d "$API_DIR" ]]; then
     fi
   done
 
-  # Verifica uso de variáveis de ambiente (sem hardcode de segredos)
   log_info "Verificando segredos hardcoded..."
   SECRETS_FOUND=0
   while IFS= read -r -d '' file; do
@@ -248,7 +211,6 @@ if [[ -d "$API_DIR" ]]; then
 
   [[ $SECRETS_FOUND -eq 0 ]] && log_pass "Nenhum segredo hardcoded detectado no backend"
 
-  # Verifica rate limiting
   if grep -r "throttle\|RateLimit\|ThrottlerModule" "$SRC_DIR" 2>/dev/null | grep -q .; then
     log_pass "Rate limiting configurado"
   else
@@ -256,7 +218,6 @@ if [[ -d "$API_DIR" ]]; then
     report "- ⚠️ Sem rate limiting — instale @nestjs/throttler"
   fi
 
-  # Verifica CORS
   if grep -r "enableCors\|CorsModule\|cors(" "$SRC_DIR" "$API_DIR/src/main.ts" 2>/dev/null | grep -q .; then
     log_pass "CORS configurado"
   else
@@ -264,7 +225,6 @@ if [[ -d "$API_DIR" ]]; then
     report "- ⚠️ CORS ausente — configure em main.ts"
   fi
 
-  # Verifica validação global (ValidationPipe)
   if grep -r "ValidationPipe\|useGlobalPipes" "$SRC_DIR" "$API_DIR/src/main.ts" 2>/dev/null | grep -q .; then
     log_pass "ValidationPipe global configurado"
   else
@@ -272,7 +232,6 @@ if [[ -d "$API_DIR" ]]; then
     report "- ❌ ValidationPipe ausente no main.ts"
   fi
 
-  # Verifica helmet (segurança HTTP headers)
   if grep -r "helmet" "$SRC_DIR" "$API_DIR/src/main.ts" 2>/dev/null | grep -q .; then
     log_pass "Helmet (HTTP security headers) configurado"
   else
@@ -280,7 +239,6 @@ if [[ -d "$API_DIR" ]]; then
     report "- ⚠️ Helmet não instalado — execute: pnpm add helmet"
   fi
 
-  # Verifica swagger
   if grep -r "SwaggerModule\|DocumentBuilder" "$SRC_DIR" "$API_DIR/src/main.ts" 2>/dev/null | grep -q .; then
     log_pass "Swagger configurado"
   else
@@ -288,7 +246,6 @@ if [[ -d "$API_DIR" ]]; then
     report "- ⚠️ Swagger não configurado"
   fi
 
-  # Verifica Exception Filter global
   if grep -r "ExceptionFilter\|useGlobalFilters\|AllExceptionsFilter" "$SRC_DIR" 2>/dev/null | grep -q .; then
     log_pass "Exception Filter global detectado"
   else
@@ -296,7 +253,6 @@ if [[ -d "$API_DIR" ]]; then
     report "- ⚠️ Sem Exception Filter global"
   fi
 
-  # TypeScript config do backend
   if [[ -f "$API_DIR/tsconfig.json" ]]; then
     log_pass "tsconfig.json presente no backend"
     if grep -q '"strict":\s*true' "$API_DIR/tsconfig.json" 2>/dev/null || grep -q '"strict": true' "$API_DIR/tsconfig.json" 2>/dev/null; then
@@ -309,9 +265,8 @@ if [[ -d "$API_DIR" ]]; then
     log_error "tsconfig.json ausente no backend"
   fi
 
-  # Verifica package.json do backend
   if [[ -f "$API_DIR/package.json" ]]; then
-    # Dependências críticas
+    
     for dep in "@nestjs/core" "@nestjs/common" "@nestjs/jwt" "@nestjs/passport" "class-validator" "class-transformer" "bcrypt" "@prisma/client"; do
       if grep -q "\"$dep\"" "$API_DIR/package.json" 2>/dev/null; then
         log_pass "Dep '$dep' presente"
@@ -321,7 +276,7 @@ if [[ -d "$API_DIR" ]]; then
       fi
     done
 
-    # Verifica se usa bcrypt ou argon2 for passwords (não MD5/SHA)
+    
     if grep -q "\"md5\"\|\"sha1\"\|\"sha256\"" "$API_DIR/package.json" 2>/dev/null; then
       log_error "Hash inseguro (md5/sha1) encontrado — use bcrypt ou argon2"
       report "- ❌ CRÍTICO: Hash inseguro detectado"
@@ -334,21 +289,19 @@ else
   log_error "Diretório apps/api não encontrado"
 fi
 
-# ══════════════════════════════════════════════════════════════
-# 4. FRONTEND NEXT.JS (apps/web)
-# ══════════════════════════════════════════════════════════════
+
 log_header "4. FRONTEND NEXT.JS (apps/web)"
 report "## 4. Frontend Next.js"
 
 WEB_DIR="apps/web"
 
 if [[ -d "$WEB_DIR" ]]; then
-  # Next.js config
+  
   check_path "$WEB_DIR/next.config.js" "next.config.js"
   check_path "$WEB_DIR/tailwind.config.js" "tailwind.config.js"
   check_path "$WEB_DIR/tsconfig.json"   "tsconfig.json (web)"
 
-  # Verifica App Router vs Pages Router
+  
   if [[ -d "$WEB_DIR/app" ]] || [[ -d "$WEB_DIR/src/app" ]]; then
     log_pass "App Router (Next.js 14) detectado"
   elif [[ -d "$WEB_DIR/pages" ]] || [[ -d "$WEB_DIR/src/pages" ]]; then
@@ -359,7 +312,7 @@ if [[ -d "$WEB_DIR" ]]; then
     report "- ❌ Estrutura de roteamento ausente"
   fi
 
-  # Páginas obrigatórias
+
   APP_DIR="$WEB_DIR/app"
   PAGES_DIR="$WEB_DIR/pages"
   ROUTER_DIR="$APP_DIR"
@@ -397,7 +350,6 @@ if [[ -d "$WEB_DIR" ]]; then
     fi
   done
 
-  # Verifica componentes UI (shadcn)
   if [[ -d "$WEB_DIR/components/ui" ]] || [[ -d "$WEB_DIR/src/components/ui" ]]; then
     log_pass "shadcn/ui components detectados"
   else
@@ -405,11 +357,11 @@ if [[ -d "$WEB_DIR" ]]; then
     report "- ⚠️ components/ui ausente"
   fi
 
-  # Verifica acessibilidade básica nos componentes
+  
   log_info "Verificando padrões de acessibilidade..."
   A11Y_ISSUES=0
 
-  # Imagens sem alt
+
   while IFS= read -r -d '' file; do
     if grep -n '<img' "$file" 2>/dev/null | grep -qv 'alt='; then
       log_error "Imagem sem 'alt' em: $file"
@@ -418,17 +370,17 @@ if [[ -d "$WEB_DIR" ]]; then
     fi
   done < <(find "$WEB_DIR" \( -name "*.tsx" -o -name "*.jsx" \) -print0 2>/dev/null)
 
-  # Botões sem aria-label ou texto
+  
   while IFS= read -r -d '' file; do
     if grep -n '<button' "$file" 2>/dev/null | grep -qv 'aria-label\|aria-labelledby'; then
-      # Verifica se tem texto filho
+
       :
     fi
   done < <(find "$WEB_DIR" \( -name "*.tsx" -o -name "*.jsx" \) -print0 2>/dev/null)
 
   [[ $A11Y_ISSUES -eq 0 ]] && log_pass "Nenhum problema grave de acessibilidade detectado"
 
-  # Verifica uso de 'any' no TypeScript
+  
   log_info "Verificando 'any' no TypeScript..."
   ANY_COUNT=0
   while IFS= read -r -d '' file; do
@@ -441,7 +393,7 @@ if [[ -d "$WEB_DIR" ]]; then
   done < <(find "$WEB_DIR" -name "*.tsx" -print0 2>/dev/null)
   [[ $ANY_COUNT -eq 0 ]] && log_pass "Uso controlado de 'any' no TypeScript"
 
-  # Verifica console.log em produção
+  
   log_info "Verificando console.log residuais..."
   CONSOLE_ISSUES=0
   while IFS= read -r -d '' file; do
@@ -453,7 +405,7 @@ if [[ -d "$WEB_DIR" ]]; then
   done < <(find "$WEB_DIR" -name "*.tsx" -print0 2>/dev/null)
   [[ $CONSOLE_ISSUES -eq 0 ]] && log_pass "Nenhum console.log em arquivos TSX"
 
-  # Verifica uso de 'use client' excessivo (App Router)
+  
   if [[ -d "$WEB_DIR/app" ]]; then
     log_info "Verificando uso de 'use client'..."
     USE_CLIENT_COUNT=$(find "$WEB_DIR/app" -name "*.tsx" -exec grep -l '"use client"' {} \; 2>/dev/null | wc -l)
@@ -469,7 +421,7 @@ if [[ -d "$WEB_DIR" ]]; then
     fi
   fi
 
-  # Verifica next.config.js para otimizações
+  
   if [[ -f "$WEB_DIR/next.config.js" ]]; then
     if grep -q "images" "$WEB_DIR/next.config.js" 2>/dev/null; then
       log_pass "Otimização de imagens configurada no next.config.js"
@@ -484,14 +436,14 @@ if [[ -d "$WEB_DIR" ]]; then
       log_warn "compress não configurado no next.config.js"
       report "- ⚠️ Adicione compress: true ao next.config.js"
       log_fix "Adicionando compress ao next.config.js"
-      # Adiciona compress se ausente
+
       if grep -q "module.exports" "$WEB_DIR/next.config.js" 2>/dev/null; then
         sed -i 's/module\.exports = {/module.exports = {\n  compress: true,/' "$WEB_DIR/next.config.js" 2>/dev/null || true
       fi
     fi
   fi
 
-  # Verifica package.json do frontend
+
   if [[ -f "$WEB_DIR/package.json" ]]; then
     for dep in "next" "react" "react-dom" "tailwindcss" "lucide-react"; do
       if grep -q "\"$dep\"" "$WEB_DIR/package.json" 2>/dev/null; then
@@ -507,14 +459,11 @@ else
   log_error "Diretório apps/web não encontrado"
 fi
 
-# ══════════════════════════════════════════════════════════════
-# 5. DOCKER COMPOSE
-# ══════════════════════════════════════════════════════════════
 log_header "5. DOCKER COMPOSE"
 report "## 5. Docker Compose"
 
 if [[ -f "docker-compose.yml" ]]; then
-  # Verifica serviços essenciais
+  
   for service in "postgres" "db" "database"; do
     if grep -qi "image:\s*postgres" docker-compose.yml 2>/dev/null; then
       log_pass "PostgreSQL configurado no Docker Compose"
@@ -522,7 +471,6 @@ if [[ -f "docker-compose.yml" ]]; then
     fi
   done
 
-  # Verifica versão do Postgres (deve ser >= 14)
   if grep -E "postgres:[0-9]+" docker-compose.yml 2>/dev/null | grep -qE "postgres:(1[4-9]|[2-9][0-9])"; then
     log_pass "PostgreSQL versão ≥ 14 configurada"
   elif grep -q "postgres:latest" docker-compose.yml 2>/dev/null; then
@@ -532,7 +480,7 @@ if [[ -f "docker-compose.yml" ]]; then
     sed -i 's/postgres:latest/postgres:16-alpine/g' docker-compose.yml 2>/dev/null || true
   fi
 
-  # Verifica healthcheck
+  
   if grep -q "healthcheck" docker-compose.yml 2>/dev/null; then
     log_pass "Healthcheck configurado no Docker Compose"
   else
@@ -540,7 +488,6 @@ if [[ -f "docker-compose.yml" ]]; then
     report "- ⚠️ Adicione healthcheck ao serviço postgres no docker-compose.yml"
   fi
 
-  # Verifica volumes persistentes
   if grep -q "volumes:" docker-compose.yml 2>/dev/null; then
     log_pass "Volumes persistentes configurados"
   else
@@ -548,7 +495,6 @@ if [[ -f "docker-compose.yml" ]]; then
     report "- ⚠️ Configure volumes para persistência de dados"
   fi
 
-  # Verifica variáveis de ambiente (não hardcoded)
   if grep -E "POSTGRES_PASSWORD:\s*[a-zA-Z0-9]" docker-compose.yml 2>/dev/null | grep -qv '\${'; then
     log_warn "Senha do Postgres pode estar hardcoded no docker-compose.yml — use variáveis de ambiente"
     report "- ⚠️ Senha hardcoded no docker-compose — use \${POSTGRES_PASSWORD}"
@@ -556,7 +502,6 @@ if [[ -f "docker-compose.yml" ]]; then
     log_pass "Credenciais via variáveis de ambiente no Docker Compose"
   fi
 
-  # Verifica networks
   if grep -q "networks:" docker-compose.yml 2>/dev/null; then
     log_pass "Redes Docker configuradas"
   else
@@ -565,9 +510,6 @@ if [[ -f "docker-compose.yml" ]]; then
   fi
 fi
 
-# ══════════════════════════════════════════════════════════════
-# 6. TYPESCRIPT E LINT
-# ══════════════════════════════════════════════════════════════
 log_header "6. TYPESCRIPT E LINT"
 report "## 6. TypeScript e Lint"
 
@@ -577,7 +519,6 @@ check_path ".eslintrc.json"          ".eslintrc.json"
 check_path ".prettierrc"             ".prettierrc"
 check_path ".prettierignore"         ".prettierignore"
 
-# Verifica strictNullChecks
 for tsconfig in "tsconfig.json" "apps/api/tsconfig.json" "apps/web/tsconfig.json"; do
   if [[ -f "$tsconfig" ]]; then
     if grep -q '"strictNullChecks":\s*false' "$tsconfig" 2>/dev/null; then
@@ -589,7 +530,6 @@ for tsconfig in "tsconfig.json" "apps/api/tsconfig.json" "apps/web/tsconfig.json
   fi
 done
 
-# Executa tsc --noEmit se disponível
 if command -v npx &>/dev/null; then
   log_info "Executando verificação de tipos TypeScript..."
   for dir in "apps/api" "apps/web"; do
@@ -602,7 +542,7 @@ if command -v npx &>/dev/null; then
         echo "$TS_OUTPUT" | grep "error TS" | head -20 | while read -r line; do
           report "  - $line"
         done
-        # Mostra os 5 primeiros erros
+
         echo "$TS_OUTPUT" | grep "error TS" | head -5 | while read -r line; do
           echo -e "    ${RED}${line}${NC}"
         done
@@ -613,16 +553,10 @@ if command -v npx &>/dev/null; then
   done
 fi
 
-# ══════════════════════════════════════════════════════════════
-# 7. SEGURANÇA
-# ══════════════════════════════════════════════════════════════
 log_header "7. ANÁLISE DE SEGURANÇA"
 report "## 7. Segurança"
-
-# Verifica .env.example
 if [[ -f ".env.example" ]]; then
   log_pass ".env.example presente"
-  # Verifica se tem valores reais (não placeholders)
   if grep -vE "=.*(\$\{|your_|example|placeholder|<|>|#)" .env.example 2>/dev/null | grep -qE "=\s*[a-zA-Z0-9]{8,}"; then
     log_warn ".env.example pode conter valores reais — use apenas placeholders"
     report "- ⚠️ .env.example pode ter valores reais"
@@ -631,13 +565,10 @@ if [[ -f ".env.example" ]]; then
   fi
 fi
 
-# Verifica JWT secret fraco
 if find . -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "jwt" 2>/dev/null | head -5 | xargs grep -h "secret" 2>/dev/null | grep -qE "secret.*['\"](\w{1,16})['\"]"; then
   log_warn "JWT secret pode ser muito curto — use no mínimo 32 caracteres aleatórios"
   report "- ⚠️ JWT secret possivelmente fraco — use no mínimo 32 chars"
 fi
-
-# Verifica npm audit (vulnerabilidades)
 if command -v npm &>/dev/null; then
   log_info "Executando auditoria de dependências (npm audit)..."
   for dir in "." "apps/api" "apps/web"; do
@@ -658,21 +589,16 @@ if command -v npm &>/dev/null; then
   done
 fi
 
-# Verifica uso de eval() (código inseguro)
 if grep -r "eval(" "apps/" 2>/dev/null | grep -qv "//\|evalutation\|evaluate"; then
   log_error "eval() encontrado — potencial risco de injeção de código"
   report "- ❌ CRÍTICO: eval() detectado no código"
 fi
 
-# Verifica SQL injection risk (query strings concatenadas)
 if grep -rn "query\(.*\+\|queryRaw.*\+\|execute.*\+" "apps/api/src" 2>/dev/null | grep -qv "//"; then
   log_warn "Possível SQL dinâmico concatenado — risco de SQL injection, use Prisma parametrizado"
   report "- ⚠️ SQL concatenado detectado — revise para uso parametrizado"
 fi
 
-# ══════════════════════════════════════════════════════════════
-# 8. DOCUMENTAÇÃO
-# ══════════════════════════════════════════════════════════════
 log_header "8. DOCUMENTAÇÃO"
 report "## 8. Documentação"
 
@@ -681,7 +607,6 @@ check_path "docs/relatorio-tecnico.md"          "Relatório técnico"
 check_path "docs/diagrama-er/README.md"         "Diagrama ER (Mermaid)"
 check_path "docs/conecta-market-postman.json"   "Coleção Postman"
 
-# Verifica qualidade mínima do README
 if [[ -f "README.md" ]]; then
   README_LINES=$(wc -l < README.md)
   if [[ "$README_LINES" -lt 30 ]]; then
@@ -690,8 +615,6 @@ if [[ -f "README.md" ]]; then
   else
     log_pass "README com $README_LINES linhas — aparentemente completo"
   fi
-
-  # Verifica seções essenciais no README
   for section in "Instalação\|Install\|Getting Started" "Pré-requisito\|Prerequisites" "Variáveis de ambiente\|Environment" "Scripts\|Comandos\|Commands"; do
     if grep -qi "$section" README.md 2>/dev/null; then
       log_pass "Seção '$section' presente no README"
@@ -702,7 +625,6 @@ if [[ -f "README.md" ]]; then
   done
 fi
 
-# Verifica diagrama ER (Mermaid)
 if [[ -f "docs/diagrama-er/README.md" ]]; then
   if grep -q "erDiagram\|classDiagram" "docs/diagrama-er/README.md" 2>/dev/null; then
     log_pass "Diagrama ER Mermaid válido"
@@ -712,7 +634,6 @@ if [[ -f "docs/diagrama-er/README.md" ]]; then
   fi
 fi
 
-# Verifica Postman Collection
 if [[ -f "docs/conecta-market-postman.json" ]]; then
   if node -e "JSON.parse(require('fs').readFileSync('docs/conecta-market-postman.json'))" 2>/dev/null; then
     log_pass "Coleção Postman — JSON válido"
@@ -724,13 +645,9 @@ if [[ -f "docs/conecta-market-postman.json" ]]; then
   fi
 fi
 
-# ══════════════════════════════════════════════════════════════
-# 9. PERFORMANCE
-# ══════════════════════════════════════════════════════════════
 log_header "9. OTIMIZAÇÕES DE PERFORMANCE"
 report "## 9. Performance"
 
-# Verifica paginação nas listagens
 if [[ -d "apps/api/src" ]]; then
   for module in "products" "orders" "stores"; do
     MODULE_DIR="apps/api/src/$module"
@@ -744,7 +661,6 @@ if [[ -d "apps/api/src" ]]; then
     fi
   done
 
-  # Verifica select específico (evita SELECT *)
   PRISMA_FILES=$(find "apps/api/src" -name "*.service.ts" 2>/dev/null)
   SELECT_STAR_COUNT=0
   while IFS= read -r file; do
@@ -757,7 +673,6 @@ if [[ -d "apps/api/src" ]]; then
   [[ $SELECT_STAR_COUNT -eq 0 ]] && log_pass "Consultas Prisma sem SELECT * óbvio detectado"
 fi
 
-# Verifica lazy loading em imagens no frontend
 if [[ -d "apps/web" ]]; then
   if grep -r "next/image\|<Image" "apps/web" 2>/dev/null | grep -q .; then
     log_pass "next/image utilizado (lazy loading automático)"
@@ -770,13 +685,9 @@ if [[ -d "apps/web" ]]; then
   fi
 fi
 
-# ══════════════════════════════════════════════════════════════
-# 10. TESTES
-# ══════════════════════════════════════════════════════════════
 log_header "10. TESTES"
 report "## 10. Testes"
 
-# Verifica presença de testes
 TEST_FILES=$(find "." -name "*.spec.ts" -o -name "*.test.ts" -o -name "*.spec.tsx" 2>/dev/null | grep -v node_modules | wc -l)
 if [[ "$TEST_FILES" -gt 0 ]]; then
   log_pass "$TEST_FILES arquivo(s) de teste encontrado(s)"
@@ -785,7 +696,6 @@ else
   report "- ⚠️ Sem arquivos de teste (próximo passo recomendado: Jest/Vitest)"
 fi
 
-# Verifica jest.config
 if [[ -f "jest.config.js" ]] || [[ -f "jest.config.ts" ]]; then
   log_pass "jest.config presente"
 else
@@ -793,9 +703,6 @@ else
   report "- ⚠️ jest.config ausente"
 fi
 
-# ══════════════════════════════════════════════════════════════
-# 11. CI/CD
-# ══════════════════════════════════════════════════════════════
 log_header "11. CI/CD"
 report "## 11. CI/CD"
 
@@ -809,15 +716,11 @@ fi
 
 check_path "Dockerfile" "Dockerfile (raiz ou apps/)"
 
-# ══════════════════════════════════════════════════════════════
-# RELATÓRIO FINAL
-# ══════════════════════════════════════════════════════════════
 log_header "RELATÓRIO FINAL"
 
 TOTAL_CHECKS=$((ERRORS + WARNINGS + PASS))
 HEALTH_SCORE=$(( (PASS * 100) / (TOTAL_CHECKS > 0 ? TOTAL_CHECKS : 1) ))
 
-# Determina classificação
 if [[ $HEALTH_SCORE -ge 90 ]]; then
   GRADE="${GREEN}A — Excelente${NC}"
 elif [[ $HEALTH_SCORE -ge 75 ]]; then
@@ -860,7 +763,6 @@ report "4. **Evolução contínua**: monitoring, cache (Redis), integração de 
 echo -e "  ${BOLD}Relatório salvo em:${NC} $REPORT_FILE"
 echo ""
 
-# Exibe top 5 erros críticos se houver
 if [[ $ERRORS -gt 0 ]]; then
   echo -e "  ${BOLD}${RED}⚡ Top erros críticos a corrigir:${NC}"
   grep "❌" "$REPORT_FILE" | head -5 | sed 's/- ❌/    →/g'
