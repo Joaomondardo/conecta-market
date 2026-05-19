@@ -2,11 +2,15 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderStatus, Prisma, TransactionType } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async create(customerId: string, dto: CreateOrderDto) {
     // Buscar produtos e calcular valores
@@ -115,7 +119,7 @@ export class OrdersService {
   }
 
   async updateStatus(id: string, status: OrderStatus) {
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const updatedOrder = await tx.order.update({
         where: { id },
         data: {
@@ -131,6 +135,17 @@ export class OrdersService {
 
       return updatedOrder;
     });
+
+    if (status === OrderStatus.CONFIRMED) {
+      this.eventEmitter.emit('order.confirmed', {
+        orderId: result.id,
+        userId: result.customerId,
+        orderNumber: result.orderNumber,
+        total: Number(result.total),
+      });
+    }
+
+    return result;
   }
 
   private async handleCashback(orderId: string, tx: Prisma.TransactionClient) {

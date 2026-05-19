@@ -17,10 +17,12 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
 import { EntrepreneursModule } from './modules/entrepreneurs/entrepreneurs.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { validate } from './common/config/env.validation';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     // ── Config ──────────────────────────────────────────────────────────────
     ConfigModule.forRoot({
       isGlobal: true,

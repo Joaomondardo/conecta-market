@@ -1,13 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateReviewDto } from './dto/create-review.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ReviewsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async create(userId: string, dto: CreateReviewDto) {
-    return this.prisma.$transaction(async (tx) => {
+    const reviewResult = await this.prisma.$transaction(async (tx) => {
       const review = await tx.review.create({
         data: { userId, ...dto, status: 'APPROVED' },
         include: { user: { select: { id: true, name: true, avatar: true } } },
@@ -46,8 +50,24 @@ export class ReviewsService {
 
       return review;
     });
-  }
 
+    let productName = "Item";
+    if (dto.productId) {
+      const prod = await this.prisma.product.findUnique({
+        where: { id: dto.productId },
+        select: { name: true },
+      });
+      if (prod) productName = prod.name;
+    }
+
+    this.eventEmitter.emit('review.approved', {
+      reviewId: reviewResult.id,
+      userId,
+      productName,
+    });
+
+    return reviewResult;
+  }
 
   async findByProduct(productId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
@@ -80,7 +100,18 @@ export class ReviewsService {
   }
 
   async approve(id: string) {
-    return this.prisma.review.update({ where: { id }, data: { status: 'APPROVED' } });
+    const review = await this.prisma.review.findUnique({
+      where: { id },
+      include: { product: { select: { name: true } } }
+    });
+    if (!review) throw new NotFoundException('Avaliação não encontrada');
+    const updated = await this.prisma.review.update({ where: { id }, data: { status: 'APPROVED' } });
+    this.eventEmitter.emit('review.approved', {
+      reviewId: updated.id,
+      userId: updated.userId,
+      productName: review.product?.name || "Item",
+    });
+    return updated;
   }
 
   async reject(id: string) {

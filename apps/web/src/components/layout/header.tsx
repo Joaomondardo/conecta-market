@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, User, Search, Menu, X, PackageOpen, Store } from "lucide-react";
+import { ShoppingCart, User, Search, Menu, X, PackageOpen, Store, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCartStore } from "@/store/useCartStore";
+import { useNotifications } from "@/store/useNotifications";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -13,6 +14,7 @@ export function Header() {
   const { user, isAuthenticated, logout } = useAuthStore();
   const cartCount = useCartStore((state) => state.getCartCount());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -55,6 +57,70 @@ export function Header() {
               )}
             </Button>
           </Link>
+
+          {/* Sino de Notificações */}
+          {isAuthenticated && (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="outline-none">
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground animate-pulse">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-80" align="end">
+                <div className="flex items-center justify-between px-4 py-2 border-b">
+                  <span className="font-semibold text-sm font-sora">Notificações</span>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={() => markAllAsRead()}
+                      className="text-xs text-primary hover:underline font-medium"
+                    >
+                      Ler todas
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-muted-foreground">
+                      Nenhuma notificação por enquanto.
+                    </div>
+                  ) : (
+                    notifications.slice(0, 5).map((n) => (
+                      <DropdownMenuItem
+                        key={n.id}
+                        onClick={() => markAsRead(n.id)}
+                        className={`flex flex-col items-start gap-1 p-3 border-b last:border-0 cursor-pointer transition-colors ${
+                          !n.isRead ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-muted'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span className={`text-xs font-semibold ${!n.isRead ? 'text-primary' : 'text-foreground'}`}>
+                            {n.title}
+                          </span>
+                          {!n.isRead && (
+                            <span className="h-2 w-2 rounded-full bg-primary" />
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground text-left line-clamp-2">
+                          {n.message}
+                        </p>
+                        <span className="text-[10px] text-muted-foreground/80 mt-1">
+                          {new Date(n.createdAt).toLocaleTimeString('pt-BR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </DropdownMenuItem>
+                    ))
+                  )}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {isAuthenticated && user ? (
             <DropdownMenu>
