@@ -71,8 +71,10 @@ export class OrdersService {
     return order;
   }
 
-  async findAll(userId: string, role: string, page = 1, limit = 20, status?: OrderStatus) {
-    const skip = (page - 1) * limit;
+  async findAll(userId: string, role: string, page: any = 1, limit: any = 20, status?: OrderStatus) {
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 20;
+    const skip = (pageNum - 1) * limitNum;
     const where: Prisma.OrderWhereInput = {
       ...(role === 'CUSTOMER' ? { customerId: userId } : {}),
       ...(status && { status }),
@@ -82,7 +84,7 @@ export class OrdersService {
       this.prisma.order.findMany({
         where,
         skip,
-        take: limit,
+        take: limitNum,
         include: {
           items: { include: { product: { select: { name: true, images: true } } } },
           store: { select: { id: true, name: true, slug: true } },
@@ -93,7 +95,7 @@ export class OrdersService {
       this.prisma.order.count({ where }),
     ]);
 
-    return { data: orders, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { data: orders, total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) };
   }
 
   async findOne(id: string, userId: string, role: string) {
