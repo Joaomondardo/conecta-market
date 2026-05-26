@@ -228,7 +228,7 @@ export default function OnboardingPage() {
 
                 <p className="text-xs text-center text-muted-foreground">
                   Ao cadastrar, você concorda com os{" "}
-                  <a href="/termos" className="underline hover:text-primary">
+                  <a href="/termos-uso" className="underline hover:text-primary">
                     Termos de Uso
                   </a>{" "}
                   da plataforma.
