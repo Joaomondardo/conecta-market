@@ -1,0 +1,25 @@
+=== RELATÓRIO DE VALIDAÇÃO COMPLETA ===
+Data: Tue May 19 21:32:41     2026
+---------------------------------------
+✅ PASSOU: TypeScript - API e Web compilando sem erros
+✅ PASSOU: Linter ESLint - Sem erros de linter
+✅ PASSOU: Build - Build completo executado com sucesso
+✅ PASSOU: Testes - Testes executados com sucesso (ou sem testes cadastrados)
+❌ FALHOU: Links Frontend - Links quebrados ou inválidos detectados:\nBROKEN_LINKS_FOUND
+Arquivo: apps\web\src\app\onboarding\page.tsx -> Link quebrado: /termos
+Arquivo: apps\web\src\app\vender\page.tsx -> Link quebrado: /termos
+Arquivo: apps\web\src\app\vender\page.tsx -> Link quebrado: /privacidade
+Arquivo: apps\web\src\components\layout\footer.tsx -> Link quebrado: /pagamentos
+Arquivo: apps\web\src\components\layout\footer.tsx -> Link quebrado: /frete
+Arquivo: apps\web\src\components\layout\footer.tsx -> Link quebrado: /devolucoes
+Arquivo: apps\web\src\components\layout\footer.tsx -> Link quebrado: /ajuda
+Arquivo: apps\web\src\components\layout\footer.tsx -> Link quebrado: /planos
+Arquivo: apps\web\src\components\layout\footer.tsx -> Link quebrado: /painel
+Arquivo: apps\web\src\components\layout\footer.tsx -> Link quebrado: /recursos
+Arquivo: apps\web\src\components\layout\footer.tsx -> Link quebrado: /b2b
+Arquivo: apps\web\src\components\layout\footer.tsx -> Link quebrado: /privacidade
+Arquivo: apps\web\src\components\layout\footer.tsx -> Link quebrado: /termos
+
+=== RESUMO CONSOLIDADO ===
+Etapas bem-sucedidas: 4 / 5
+STATUS GERAL: REPROVADO
