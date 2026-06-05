@@ -6,14 +6,15 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
-import { OrderStatus } from '@prisma/client';
+import { type OrderStatus } from '@prisma/client';
+import { ActiveUser } from '../../common/interfaces/active-user.interface';
 
 @ApiTags('orders')
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard)
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(private readonly ordersService: OrdersService) { }
 
   @Post()
   @ApiOperation({ summary: 'Criar pedido' })
@@ -24,7 +25,7 @@ export class OrdersController {
   @Get()
   @ApiOperation({ summary: 'Listar pedidos do usuário' })
   findAll(
-    @GetCurrentUser() user: any,
+    @GetCurrentUser() user: ActiveUser,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('status') status?: OrderStatus,
@@ -34,7 +35,7 @@ export class OrdersController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Detalhes do pedido' })
-  findOne(@Param('id') id: string, @GetCurrentUser() user: any) {
+  findOne(@Param('id') id: string, @GetCurrentUser() user: ActiveUser) {
     return this.ordersService.findOne(id, user.id, user.role);
   }
 

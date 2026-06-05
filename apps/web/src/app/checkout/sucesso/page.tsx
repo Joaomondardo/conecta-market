@@ -38,16 +38,16 @@ export default function CheckoutSuccessPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 w-full">
-                <Button className="flex-1 h-12" asChild>
-                  <Link href="/conta/pedidos">
+                <Link href="/pedidos" className="flex-1">
+                  <Button className="w-full h-12">
                     Acompanhar Pedido
-                  </Link>
-                </Button>
-                <Button variant="outline" className="flex-1 h-12" asChild>
-                  <Link href="/catalogo">
+                  </Button>
+                </Link>
+                <Link href="/catalogo" className="flex-1">
+                  <Button variant="outline" className="w-full h-12">
                     Voltar às compras <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

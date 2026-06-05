@@ -1,11 +1,12 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ShoppingBag, Store, Users, TrendingUp, ShieldCheck, HeartHandshake } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, Users, TrendingUp, HeartHandshake } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { productService, Product } from "@/services/api/products.service";
 
-export default function Home() {
+export default async function Home() {
+  const products = await productService.findAll();
+
   return (
     <>
       <Header />
@@ -19,56 +20,39 @@ export default function Home() {
                 <span className="flex h-2 w-2 rounded-full bg-primary mr-2"></span>
                 Inclusão digital para todos
               </div>
-              <h1 className="font-sora text-4xl md:text-6xl font-extrabold tracking-tight text-foreground leading-[1.1]">
+              <h1 className="font-sora text-4xl md:text-6xl font-extrabold tracking-tight text-foreground leading-[1.1]" id="hero-title">
                 O Marketplace feito para <span className="text-primary">conectar</span> você ao sucesso.
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground max-w-[600px] leading-relaxed">
                 Compre diretamente de pequenos produtores ou venda seus produtos para milhares de clientes, tudo em um ambiente seguro, intuitivo e acessível.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button size="lg" className="h-12 px-8 font-semibold rounded-full shadow-lg shadow-primary/20" asChild>
-                  <Link href="/catalogo">
-                    Explorar Produtos <ShoppingBag className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" className="h-12 px-8 font-semibold rounded-full bg-background/50 backdrop-blur-sm" asChild>
-                  <Link href="/cadastro">
-                    Começar a Vender <Store className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
             </div>
-            <div className="flex-1 relative hidden md:block">
-              <div className="relative w-full aspect-square max-w-[500px] mx-auto">
-                <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-secondary/20 rounded-[2.5rem] rotate-3 transform origin-bottom-right"></div>
-                <div className="absolute inset-0 bg-background rounded-[2.5rem] shadow-2xl border overflow-hidden -rotate-2 transform origin-bottom-right transition-transform hover:rotate-0 duration-500">
-                  <Image
-                    src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1000"
-                    alt="Pessoas comprando e vendendo"
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                </div>
-                {/* Floating Badges */}
-                <div className="absolute -left-6 top-20 bg-background rounded-xl p-4 shadow-xl border flex items-center gap-3 animate-bounce" style={{ animationDuration: '3s' }}>
-                  <div className="bg-primary/10 p-2 rounded-lg text-primary"><TrendingUp className="h-5 w-5" /></div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium">Vendas B2B</p>
-                    <p className="text-sm font-bold">+150% cresc.</p>
-                  </div>
-                </div>
-                <div className="absolute -right-6 bottom-32 bg-background rounded-xl p-4 shadow-xl border flex items-center gap-3 animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
-                  <div className="bg-blue-500/10 p-2 rounded-lg text-blue-500"><ShieldCheck className="h-5 w-5" /></div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium">Compra Segura</p>
-                    <p className="text-sm font-bold">100% Garantido</p>
-                  </div>
-                </div>
+            
+            {/* Products List (Mocked Integration) */}
+            <div className="flex-1 bg-background rounded-3xl p-8 border shadow-xl">
+              <h3 className="font-sora text-xl font-bold mb-6 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" /> Destaques do Dia
+              </h3>
+              <div className="space-y-4">
+                {products.length > 0 ? (
+                  products.slice(0, 2).map((product: Product) => (
+                    <div key={product.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-transparent hover:border-primary/20 transition-all cursor-pointer">
+                      <div>
+                        <p className="font-bold">{product.name}</p>
+                        <p className="text-sm text-muted-foreground">R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-primary" />
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground text-sm py-8 text-center">Nenhum produto em destaque no momento.</p>
+                )}
               </div>
             </div>
           </div>
         </section>
+
+        {/* Rest of the page... */}
 
         {/* Features / Por que escolher */}
         <section className="py-20 bg-background">
@@ -120,9 +104,9 @@ export default function Home() {
               Junte-se a milhares de usuários que já estão comprando com impacto e vendendo com propósito.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button size="lg" variant="secondary" className="h-14 px-8 text-lg font-bold rounded-full text-primary" asChild>
-                <Link href="/cadastro">Criar minha conta grátis</Link>
-              </Button>
+              <Link href="/cadastro" className="inline-flex h-14 px-8 text-lg font-bold rounded-full text-primary bg-secondary hover:bg-secondary/80 items-center justify-center">
+                Criar minha conta grátis
+              </Link>
             </div>
           </div>
         </section>

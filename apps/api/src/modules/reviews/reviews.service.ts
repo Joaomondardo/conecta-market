@@ -1,22 +1,72 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateReviewDto } from './dto/create-review.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ReviewsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async create(userId: string, dto: CreateReviewDto) {
-    const review = await this.prisma.review.create({
-      data: { userId, ...dto },
-      include: { user: { select: { id: true, name: true, avatar: true } } },
+    const reviewResult = await this.prisma.$transaction(async (tx) => {
+      const review = await tx.review.create({
+        data: { userId, ...dto, status: 'APPROVED' },
+        include: { user: { select: { id: true, name: true, avatar: true } } },
+      });
+
+      // Atualizar rating médio do produto/loja imediatamente
+      if (dto.productId) {
+        const result = await tx.review.aggregate({
+          where: { productId: dto.productId, status: 'APPROVED' },
+          _avg: { rating: true },
+          _count: { id: true },
+        });
+        await tx.product.update({
+          where: { id: dto.productId },
+          data: {
+            rating: result._avg.rating ?? 0,
+            totalReviews: result._count.id,
+          },
+        });
+      }
+
+      if (dto.storeId) {
+        const result = await tx.review.aggregate({
+          where: { storeId: dto.storeId, status: 'APPROVED' },
+          _avg: { rating: true },
+          _count: { id: true },
+        });
+        await tx.store.update({
+          where: { id: dto.storeId },
+          data: {
+            rating: result._avg.rating ?? 0,
+            totalReviews: result._count.id,
+          },
+        });
+      }
+
+      return review;
     });
 
-    // Atualizar rating médio do produto/loja
-    if (dto.productId) await this.updateProductRating(dto.productId);
-    if (dto.storeId) await this.updateStoreRating(dto.storeId);
+    let productName = "Item";
+    if (dto.productId) {
+      const prod = await this.prisma.product.findUnique({
+        where: { id: dto.productId },
+        select: { name: true },
+      });
+      if (prod) productName = prod.name;
+    }
 
-    return review;
+    this.eventEmitter.emit('review.approved', {
+      reviewId: reviewResult.id,
+      userId,
+      productName,
+    });
+
+    return reviewResult;
   }
 
   async findByProduct(productId: string, page = 1, limit = 10) {
@@ -50,7 +100,18 @@ export class ReviewsService {
   }
 
   async approve(id: string) {
-    return this.prisma.review.update({ where: { id }, data: { status: 'APPROVED' } });
+    const review = await this.prisma.review.findUnique({
+      where: { id },
+      include: { product: { select: { name: true } } }
+    });
+    if (!review) throw new NotFoundException('Avaliação não encontrada');
+    const updated = await this.prisma.review.update({ where: { id }, data: { status: 'APPROVED' } });
+    this.eventEmitter.emit('review.approved', {
+      reviewId: updated.id,
+      userId: updated.userId,
+      productName: review.product?.name || "Item",
+    });
+    return updated;
   }
 
   async reject(id: string) {

@@ -24,6 +24,7 @@ import { JwtRefreshGuard } from '../../common/guards/jwt-refresh.guard';
 import { GoogleAuthGuard } from '../../common/guards/google-auth.guard';
 import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { ActiveUser } from '../../common/interfaces/active-user.interface';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -74,7 +75,7 @@ export class AuthController {
   @Get('me')
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Obter perfil do usuário autenticado' })
-  getMe(@GetCurrentUser() user: any) {
+  getMe(@GetCurrentUser() user: ActiveUser) {
     return user;
   }
 
@@ -106,7 +107,7 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   @ApiOperation({ summary: 'Callback do Google OAuth' })
-  googleCallback(@Req() req: any) {
-    return this.authService.googleLogin(req.user);
+  googleCallback(@Req() req: { user: ActiveUser }) {
+    return this.authService.googleLogin(req.user as any);
   }
 }

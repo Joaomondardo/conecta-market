@@ -1,11 +1,16 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { OrderStatus, Prisma } from '@prisma/client';
+import { OrderStatus, Prisma, TransactionType } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async create(customerId: string, dto: CreateOrderDto) {
     // Buscar produtos e calcular valores
@@ -66,8 +71,10 @@ export class OrdersService {
     return order;
   }
 
-  async findAll(userId: string, role: string, page = 1, limit = 20, status?: OrderStatus) {
-    const skip = (page - 1) * limit;
+  async findAll(userId: string, role: string, page: any = 1, limit: any = 20, status?: OrderStatus) {
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 20;
+    const skip = (pageNum - 1) * limitNum;
     const where: Prisma.OrderWhereInput = {
       ...(role === 'CUSTOMER' ? { customerId: userId } : {}),
       ...(status && { status }),
@@ -77,7 +84,7 @@ export class OrdersService {
       this.prisma.order.findMany({
         where,
         skip,
-        take: limit,
+        take: limitNum,
         include: {
           items: { include: { product: { select: { name: true, images: true } } } },
           store: { select: { id: true, name: true, slug: true } },
@@ -88,7 +95,7 @@ export class OrdersService {
       this.prisma.order.count({ where }),
     ]);
 
-    return { data: orders, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { data: orders, total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) };
   }
 
   async findOne(id: string, userId: string, role: string) {
@@ -114,18 +121,86 @@ export class OrdersService {
   }
 
   async updateStatus(id: string, status: OrderStatus) {
-    const order = await this.prisma.order.findUnique({ where: { id } });
-    if (!order) throw new NotFoundException('Pedido não encontrado');
+    const result = await this.prisma.$transaction(async (tx) => {
+      const updatedOrder = await tx.order.update({
+        where: { id },
+        data: {
+          status,
+          ...(status === OrderStatus.DELIVERED && { deliveredAt: new Date() }),
+          ...(status === OrderStatus.CANCELLED && { cancelledAt: new Date() }),
+        },
+      });
 
-    return this.prisma.order.update({
-      where: { id },
+      if (status === OrderStatus.DELIVERED) {
+        await this.handleCashback(id, tx);
+      }
+
+      return updatedOrder;
+    });
+
+    if (status === OrderStatus.CONFIRMED) {
+      this.eventEmitter.emit('order.confirmed', {
+        orderId: result.id,
+        userId: result.customerId,
+        orderNumber: result.orderNumber,
+        total: Number(result.total),
+      });
+    }
+
+    return result;
+  }
+
+  private async handleCashback(orderId: string, tx: Prisma.TransactionClient) {
+    const order = await tx.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+
+    if (!order) return;
+
+    // Buscar campanha de cashback ativa para a loja
+    const now = new Date();
+    const campaign = await tx.campaign.findFirst({
+      where: {
+        storeId: order.storeId,
+        type: 'CASHBACK',
+        status: 'ACTIVE',
+        isActive: true,
+        startsAt: { lte: now },
+        endsAt: { gte: now },
+      },
+    });
+
+    if (!campaign) return;
+
+    let cashbackAmount = 0;
+    if (campaign.discountType === 'PERCENTAGE') {
+      cashbackAmount = Number(order.total) * (Number(campaign.discountValue) / 100);
+    } else {
+      cashbackAmount = Number(campaign.discountValue);
+    }
+
+    if (cashbackAmount <= 0) return;
+
+    // Garantir que a wallet existe
+    const wallet = await tx.wallet.upsert({
+      where: { userId: order.customerId },
+      update: { balance: { increment: cashbackAmount } },
+      create: { userId: order.customerId, balance: cashbackAmount },
+    });
+
+    // Registrar transação
+    await tx.transaction.create({
       data: {
-        status,
-        ...(status === OrderStatus.DELIVERED && { deliveredAt: new Date() }),
-        ...(status === OrderStatus.CANCELLED && { cancelledAt: new Date() }),
+        walletId: wallet.id,
+        orderId: order.id,
+        amount: cashbackAmount,
+        type: TransactionType.CREDIT,
+        description: `Cashback do pedido ${order.orderNumber}`,
       },
     });
   }
+
 
   async cancel(id: string, userId: string, reason: string) {
     const order = await this.prisma.order.findUnique({ where: { id, customerId: userId } });

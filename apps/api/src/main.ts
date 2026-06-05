@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,6 +20,7 @@ async function bootstrap() {
   // ── Versioning ─────────────────────────────────────────────────────────────
   app.enableVersioning({ type: VersioningType.URI });
   app.setGlobalPrefix('api');
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   // ── Validation ─────────────────────────────────────────────────────────────
   app.useGlobalPipes(

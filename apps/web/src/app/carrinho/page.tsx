@@ -1,7 +1,7 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import Image from "next/image";
@@ -120,11 +120,11 @@ export default function CarrinhoPage() {
                       </span>
                     </div>
 
-                    <Button className="w-full h-12 text-base font-semibold" asChild>
-                      <Link href="/checkout">
+                    <Link href="/checkout" className="w-full block">
+                      <Button className="w-full h-12 text-base font-semibold">
                         Finalizar Compra <ArrowRight className="ml-2 h-5 w-5" />
-                      </Link>
-                    </Button>
+                      </Button>
+                    </Link>
                     <div className="text-center">
                       <Link href="/catalogo" className="text-sm font-medium text-primary hover:underline">
                         Continuar Comprando
@@ -143,9 +143,9 @@ export default function CarrinhoPage() {
               <p className="text-muted-foreground mb-8 max-w-[400px] mx-auto">
                 Explore nosso catálogo e encontre produtos incríveis de pequenos empreendedores.
               </p>
-              <Button size="lg" asChild>
-                <Link href="/catalogo">Explorar Catálogo</Link>
-              </Button>
+              <Link href="/catalogo">
+                <Button size="lg">Explorar Catálogo</Button>
+              </Link>
             </div>
           )}
         </div>

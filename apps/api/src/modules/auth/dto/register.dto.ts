@@ -21,7 +21,7 @@ export class RegisterDto {
   @IsString()
   phone?: string;
 
-  @ApiPropertyOptional({ enum: UserRole, default: UserRole.CUSTOMER })
+  @ApiPropertyOptional({ enum: UserRole, default: UserRole.CLIENTE })
   @IsOptional()
   @IsEnum(UserRole)
   role?: UserRole;

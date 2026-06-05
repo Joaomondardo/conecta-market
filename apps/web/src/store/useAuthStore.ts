@@ -1,12 +1,18 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
+interface Wallet {
+  id: string;
+  balance: number;
+}
+
 interface User {
   id: string;
   name: string;
   email: string;
   role: string;
   avatar?: string;
+  wallet?: Wallet;
   store?: {
     id: string;
     name: string;

@@ -2,7 +2,8 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
-import { StoreStatus } from '@prisma/client';
+import { StoreStatus, Prisma } from '@prisma/client';
+import { APP_CONSTANTS } from '../../common/constants/app.constants';
 
 @Injectable()
 export class StoresService {
@@ -18,9 +19,14 @@ export class StoresService {
     });
   }
 
-  async findAll(page = 1, limit = 20, status?: StoreStatus, search?: string) {
+  async findAll(
+    page = APP_CONSTANTS.PAGINATION.DEFAULT_PAGE, 
+    limit = APP_CONSTANTS.PAGINATION.DEFAULT_PAGE_SIZE, 
+    status?: StoreStatus, 
+    search?: string
+  ) {
     const skip = (page - 1) * limit;
-    const where: any = {
+    const where: Prisma.StoreWhereInput = {
       ...(status ? { status } : { status: StoreStatus.ACTIVE }),
       ...(search && { name: { contains: search, mode: 'insensitive' } }),
     };

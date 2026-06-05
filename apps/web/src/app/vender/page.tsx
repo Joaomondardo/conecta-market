@@ -120,7 +120,7 @@ export default function VenderPage() {
                     Criar Minha Loja
                   </Button>
                   <p className="text-xs text-center text-muted-foreground mt-4">
-                    Ao criar sua loja, você concorda com nossos <a href="/termos" className="underline hover:text-primary">Termos de Uso</a> e <a href="/privacidade" className="underline hover:text-primary">Política de Privacidade para Vendedores</a>.
+                    Ao criar sua loja, você concorda com nossos <a href="/termos-uso" className="underline hover:text-primary">Termos de Uso</a> e <a href="/politica-privacidade" className="underline hover:text-primary">Política de Privacidade para Vendedores</a>.
                   </p>
                 </div>
               </form>

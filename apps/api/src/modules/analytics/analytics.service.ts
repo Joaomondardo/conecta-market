@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class AnalyticsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getAdminDashboard() {
     const [
@@ -79,4 +80,45 @@ export class AnalyticsService {
       topProducts,
     };
   }
+
+  async getSummary() {
+    const roles: UserRole[] = [UserRole.LOJISTA, UserRole.EMPREENDEDOR];
+
+    const [
+      totalCashback,
+      totalGifts,
+      ...roleResults
+    ] = await this.prisma.$transaction([
+      this.prisma.transaction.aggregate({
+        where: { type: 'CREDIT' },
+        _sum: { amount: true },
+      }),
+      this.prisma.campaign.aggregate({
+        where: { type: 'GIFT' },
+        _sum: { usageCount: true },
+      }),
+      ...roles.map((role) =>
+        this.prisma.order.aggregate({
+          where: {
+            status: 'DELIVERED',
+            customer: { role },
+          },
+          _sum: { total: true },
+        }),
+      ),
+    ]);
+
+    const volumeByRole = roles.reduce((acc: Record<string, number>, role, index) => {
+      acc[role] = Number((roleResults[index] as Record<string, any>)._sum.total ?? 0);
+      return acc;
+    }, {});
+
+    return {
+      totalCashback: (totalCashback as Record<string, any>)._sum.amount ?? 0,
+      totalGifts: (totalGifts as Record<string, any>)._sum.usageCount ?? 0,
+      volumeByRole,
+    };
+  }
 }
+
+

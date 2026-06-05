@@ -1,17 +1,18 @@
 import {
   Injectable,
   NotFoundException,
-  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { APP_CONSTANTS } from '../../common/constants/app.constants';
 import * as bcrypt from 'bcrypt';
+import { UserStatus } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(page = 1, limit = 20) {
+  async findAll(page = APP_CONSTANTS.PAGINATION.DEFAULT_PAGE, limit = APP_CONSTANTS.PAGINATION.DEFAULT_PAGE_SIZE) {
     const skip = (page - 1) * limit;
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
@@ -64,9 +65,9 @@ export class UsersService {
 
   async update(id: string, dto: UpdateUserDto) {
     await this.findById(id);
-    const data: any = { ...dto };
+    const data: Record<string, any> = { ...dto };
     if (dto.password) {
-      data.password = await bcrypt.hash(dto.password, 12);
+      data.password = await bcrypt.hash(dto.password, APP_CONSTANTS.SECURITY.BCRYPT_SALT_ROUNDS);
     }
     const user = await this.prisma.user.update({
       where: { id },
@@ -97,7 +98,7 @@ export class UsersService {
     await this.findById(id);
     return this.prisma.user.update({
       where: { id },
-      data: { status: status as any },
+      data: { status: status as UserStatus },
       select: { id: true, status: true },
     });
   }

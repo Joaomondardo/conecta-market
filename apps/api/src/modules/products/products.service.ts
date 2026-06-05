@@ -2,7 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { ProductStatus, Prisma } from '@prisma/client';
+import { ProductStatus, ProductType, Prisma } from '@prisma/client';
+
+import { APP_CONSTANTS } from '../../common/constants/app.constants';
 
 @Injectable()
 export class ProductsService {
@@ -26,8 +28,15 @@ export class ProductsService {
     maxPrice?: number;
     featured?: boolean;
     status?: ProductStatus;
+    type?: ProductType;
   }) {
-    const { page = 1, limit = 20, search, categoryId, storeId, minPrice, maxPrice, featured, status } = query;
+
+    const { 
+      page = APP_CONSTANTS.PAGINATION.DEFAULT_PAGE, 
+      limit = APP_CONSTANTS.PAGINATION.DEFAULT_PAGE_SIZE, 
+      search, categoryId, storeId, minPrice, maxPrice, featured, status, type 
+    } = query;
+
     const skip = (page - 1) * limit;
 
     const where: Prisma.ProductWhereInput = {
@@ -35,7 +44,9 @@ export class ProductsService {
       ...(search && { name: { contains: search, mode: 'insensitive' } }),
       ...(categoryId && { categoryId }),
       ...(storeId && { storeId }),
+      ...(type && { type }),
       ...(featured !== undefined && { isFeatured: featured }),
+
       ...(minPrice !== undefined || maxPrice !== undefined
         ? { price: { gte: minPrice, lte: maxPrice } }
         : {}),
@@ -58,11 +69,13 @@ export class ProductsService {
     return { data: products, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async findOne(id: string) {
+  async findOne(identifier: string) {
+    const isId = identifier.match(/^[a-z0-9]{24,30}$/i) || !identifier.includes('-');
+    
     const product = await this.prisma.product.findUnique({
-      where: { id },
+      where: isId ? { id: identifier } : { slug: identifier },
       include: {
-        category: true,
+        category: { select: { id: true, name: true, slug: true } },
         store: { select: { id: true, name: true, slug: true, rating: true, logo: true } },
         reviews: {
           where: { status: 'APPROVED' },
@@ -72,24 +85,7 @@ export class ProductsService {
         },
       },
     });
-    if (!product) throw new NotFoundException('Produto não encontrado');
-    return product;
-  }
 
-  async findBySlug(slug: string) {
-    const product = await this.prisma.product.findUnique({
-      where: { slug },
-      include: {
-        category: true,
-        store: { select: { id: true, name: true, slug: true, rating: true, logo: true } },
-        reviews: {
-          where: { status: 'APPROVED' },
-          include: { user: { select: { id: true, name: true, avatar: true } } },
-          take: 10,
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-    });
     if (!product) throw new NotFoundException('Produto não encontrado');
     return product;
   }

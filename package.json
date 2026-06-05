@@ -1,7 +1,12 @@
 {
   "name": "conecta-market",
   "version": "1.0.0",
+  "packageManager": "pnpm@11.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "description": "Marketplace Híbrido B2B+B2C com foco em inclusão digital",
   "scripts": {
     "dev": "turbo run dev",
@@ -23,9 +28,9 @@
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.57.0",
-    "prettier": "^3.2.0"
+    "prettier": "^3.2.0",
+    "rimraf": "^6.0.1"
   },
-  "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=9.0.0"
