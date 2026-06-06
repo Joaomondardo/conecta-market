@@ -20,7 +20,7 @@ export class ReviewsService {
       // Atualizar rating mÃ©dio do produto/loja imediatamente
       if (dto.productId) {
         const result = await tx.review.aggregate({
-          where: { productId: dto.productId, status: 'PENDING' },
+          where: { productId: dto.productId, status: 'APPROVED' },
           _avg: { rating: true },
           _count: { id: true },
         });
@@ -35,7 +35,7 @@ export class ReviewsService {
 
       if (dto.storeId) {
         const result = await tx.review.aggregate({
-          where: { storeId: dto.storeId, status: 'PENDING' },
+          where: { storeId: dto.storeId, status: 'APPROVED' },
           _avg: { rating: true },
           _count: { id: true },
         });
@@ -73,13 +73,13 @@ export class ReviewsService {
     const skip = (page - 1) * limit;
     const [reviews, total] = await Promise.all([
       this.prisma.review.findMany({
-        where: { productId, status: 'PENDING' },
+        where: { productId, status: 'APPROVED' },
         skip,
         take: limit,
         include: { user: { select: { id: true, name: true, avatar: true } } },
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.review.count({ where: { productId, status: 'PENDING' } }),
+      this.prisma.review.count({ where: { productId, status: 'APPROVED' } }),
     ]);
     return { data: reviews, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
@@ -88,13 +88,13 @@ export class ReviewsService {
     const skip = (page - 1) * limit;
     const [reviews, total] = await Promise.all([
       this.prisma.review.findMany({
-        where: { storeId, status: 'PENDING' },
+        where: { storeId, status: 'APPROVED' },
         skip,
         take: limit,
         include: { user: { select: { id: true, name: true, avatar: true } } },
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.review.count({ where: { storeId, status: 'PENDING' } }),
+      this.prisma.review.count({ where: { storeId, status: 'APPROVED' } }),
     ]);
     return { data: reviews, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
@@ -105,7 +105,7 @@ export class ReviewsService {
       include: { product: { select: { name: true } } }
     });
     if (!review) throw new NotFoundException('AvaliaÃ§Ã£o nÃ£o encontrada');
-    const updated = await this.prisma.review.update({ where: { id }, data: { status: 'PENDING' } });
+    const updated = await this.prisma.review.update({ where: { id }, data: { status: 'APPROVED' } });
     this.eventEmitter.emit('review.approved', {
       reviewId: updated.id,
       userId: updated.userId,
@@ -120,7 +120,7 @@ export class ReviewsService {
 
   private async updateProductRating(productId: string) {
     const result = await this.prisma.review.aggregate({
-      where: { productId, status: 'PENDING' },
+      where: { productId, status: 'APPROVED' },
       _avg: { rating: true },
       _count: { id: true },
     });
@@ -135,7 +135,7 @@ export class ReviewsService {
 
   private async updateStoreRating(storeId: string) {
     const result = await this.prisma.review.aggregate({
-      where: { storeId, status: 'PENDING' },
+      where: { storeId, status: 'APPROVED' },
       _avg: { rating: true },
       _count: { id: true },
     });
@@ -148,4 +148,5 @@ export class ReviewsService {
     });
   }
 }
+
 
