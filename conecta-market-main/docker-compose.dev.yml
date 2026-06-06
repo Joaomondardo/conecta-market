@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: conecta_postgres_dev
+    environment:
+      POSTGRES_USER: conecta
+      POSTGRES_PASSWORD: conecta123
+      POSTGRES_DB: conecta
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U conecta -d conecta"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - conecta_network
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.dev
+    container_name: conecta_api_dev
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: "postgresql://conecta:conecta123@postgres:5432/conecta"
+      JWT_SECRET: "dev_jwt_secret_super_secreto_minimo_32_caracteres_"
+      JWT_REFRESH_SECRET: "dev_jwt_refresh_secret_super_secreto_minimo_32_"
+      REDIS_URL: "redis://redis:6379"
+      MONGODB_URL: "mongodb://mongodb:27017/conecta_logs"
+      FRONTEND_URL: "http://localhost:3000"
+      PORT: 3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./apps/api:/app/apps/api
+      - /app/apps/api/dist
+      - /app/node_modules
+      - /app/apps/api/node_modules
+    networks:
+      - conecta_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: conecta_redis_dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - conecta_network
+
+  mongodb:
+    image: mongo:7
+    container_name: conecta_mongodb_dev
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - conecta_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongodb_data:
+
+networks:
+  conecta_network:
+    driver: bridge
