@@ -8,7 +8,7 @@ export class ReviewsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async create(userId: string, dto: CreateReviewDto) {
     const reviewResult = await this.prisma.$transaction(async (tx) => {
