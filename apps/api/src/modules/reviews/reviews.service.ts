@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+﻿import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -13,14 +13,14 @@ export class ReviewsService {
   async create(userId: string, dto: CreateReviewDto) {
     const reviewResult = await this.prisma.$transaction(async (tx) => {
       const review = await tx.review.create({
-        data: { userId, ...dto, status: 'APPROVED' },
+        data: { userId, ...dto, status: 'PENDING' },
         include: { user: { select: { id: true, name: true, avatar: true } } },
       });
 
-      // Atualizar rating médio do produto/loja imediatamente
+      // Atualizar rating mÃ©dio do produto/loja imediatamente
       if (dto.productId) {
         const result = await tx.review.aggregate({
-          where: { productId: dto.productId, status: 'APPROVED' },
+          where: { productId: dto.productId, status: 'PENDING' },
           _avg: { rating: true },
           _count: { id: true },
         });
@@ -35,7 +35,7 @@ export class ReviewsService {
 
       if (dto.storeId) {
         const result = await tx.review.aggregate({
-          where: { storeId: dto.storeId, status: 'APPROVED' },
+          where: { storeId: dto.storeId, status: 'PENDING' },
           _avg: { rating: true },
           _count: { id: true },
         });
@@ -73,13 +73,13 @@ export class ReviewsService {
     const skip = (page - 1) * limit;
     const [reviews, total] = await Promise.all([
       this.prisma.review.findMany({
-        where: { productId, status: 'APPROVED' },
+        where: { productId, status: 'PENDING' },
         skip,
         take: limit,
         include: { user: { select: { id: true, name: true, avatar: true } } },
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.review.count({ where: { productId, status: 'APPROVED' } }),
+      this.prisma.review.count({ where: { productId, status: 'PENDING' } }),
     ]);
     return { data: reviews, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
@@ -88,13 +88,13 @@ export class ReviewsService {
     const skip = (page - 1) * limit;
     const [reviews, total] = await Promise.all([
       this.prisma.review.findMany({
-        where: { storeId, status: 'APPROVED' },
+        where: { storeId, status: 'PENDING' },
         skip,
         take: limit,
         include: { user: { select: { id: true, name: true, avatar: true } } },
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.review.count({ where: { storeId, status: 'APPROVED' } }),
+      this.prisma.review.count({ where: { storeId, status: 'PENDING' } }),
     ]);
     return { data: reviews, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
@@ -104,8 +104,8 @@ export class ReviewsService {
       where: { id },
       include: { product: { select: { name: true } } }
     });
-    if (!review) throw new NotFoundException('Avaliação não encontrada');
-    const updated = await this.prisma.review.update({ where: { id }, data: { status: 'APPROVED' } });
+    if (!review) throw new NotFoundException('AvaliaÃ§Ã£o nÃ£o encontrada');
+    const updated = await this.prisma.review.update({ where: { id }, data: { status: 'PENDING' } });
     this.eventEmitter.emit('review.approved', {
       reviewId: updated.id,
       userId: updated.userId,
@@ -120,7 +120,7 @@ export class ReviewsService {
 
   private async updateProductRating(productId: string) {
     const result = await this.prisma.review.aggregate({
-      where: { productId, status: 'APPROVED' },
+      where: { productId, status: 'PENDING' },
       _avg: { rating: true },
       _count: { id: true },
     });
@@ -135,7 +135,7 @@ export class ReviewsService {
 
   private async updateStoreRating(storeId: string) {
     const result = await this.prisma.review.aggregate({
-      where: { storeId, status: 'APPROVED' },
+      where: { storeId, status: 'PENDING' },
       _avg: { rating: true },
       _count: { id: true },
     });
@@ -148,3 +148,4 @@ export class ReviewsService {
     });
   }
 }
+
