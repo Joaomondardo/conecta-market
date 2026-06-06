@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+﻿import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -40,6 +40,7 @@ export class ProductsService {
     const skip = (page - 1) * limit;
 
     const where: Prisma.ProductWhereInput = {
+      deletedAt: null,
       ...(status ? { status } : { status: ProductStatus.ACTIVE }),
       ...(search && { name: { contains: search, mode: 'insensitive' } }),
       ...(categoryId && { categoryId }),
@@ -86,7 +87,7 @@ export class ProductsService {
       },
     });
 
-    if (!product) throw new NotFoundException('Produto não encontrado');
+    if (!product) throw new NotFoundException('Produto nÃ£o encontrado');
     return product;
   }
 
@@ -128,3 +129,4 @@ export class ProductsService {
       + '-' + Date.now();
   }
 }
+

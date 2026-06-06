@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 export interface CartItem {
@@ -27,6 +27,11 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
       addItem: (newItem) => set((state) => {
+        // Validacao: impede itens de lojas diferentes no mesmo carrinho
+        if (state.items.length > 0 && state.items[0].storeId !== newItem.storeId) {
+          alert('Seu carrinho ja possui itens de outra loja. Esvazie o carrinho para adicionar itens desta loja.');
+          return state;
+        }
         const existingItem = state.items.find(item => item.productId === newItem.productId);
         if (existingItem) {
           return {
@@ -63,3 +68,4 @@ export const useCartStore = create<CartState>()(
     }
   )
 );
+

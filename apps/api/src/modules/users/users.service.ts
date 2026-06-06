@@ -1,4 +1,4 @@
-import {
+﻿import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -16,6 +16,7 @@ export class UsersService {
     const skip = (page - 1) * limit;
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
+        where: { deletedAt: null },
         skip,
         take: limit,
         select: {
@@ -55,7 +56,7 @@ export class UsersService {
         },
       },
     });
-    if (!user) throw new NotFoundException('Usuário não encontrado');
+    if (!user) throw new NotFoundException('UsuÃ¡rio nÃ£o encontrado');
     return user;
   }
 
@@ -91,7 +92,7 @@ export class UsersService {
       where: { id },
       data: { status: 'INACTIVE' },
     });
-    return { message: 'Usuário desativado com sucesso' };
+    return { message: 'UsuÃ¡rio desativado com sucesso' };
   }
 
   async updateStatus(id: string, status: string) {
@@ -103,3 +104,4 @@ export class UsersService {
     });
   }
 }
+
