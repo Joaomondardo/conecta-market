@@ -84,3 +84,4 @@ pnpm dev
 
 4ª Fase Ciência da Computação — UNESC | Parceria: ABADEUS — ONG Criciúma/SC
 Apresentação: 04/07/2026 — PINTER 2026
+
